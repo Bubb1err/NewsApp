@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
+using NewsApp.API.Data.Entities;
 
 namespace NewsApp.API.Data.Repository.Base
 {
@@ -29,6 +30,9 @@ namespace NewsApp.API.Data.Repository.Base
 
         public IQueryable<T> GetAll(Expression<Func<T, bool>> predicate = null, Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null, bool track = false)
             => GetQuery(track, predicate, include);
+
+     
+     
 
         public async Task<T?> GetFirstOrDefaultAsync(Expression<Func<T, bool>> predicate = null, Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null, bool track = true)
         {

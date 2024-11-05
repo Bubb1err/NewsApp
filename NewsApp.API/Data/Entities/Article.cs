@@ -11,5 +11,9 @@ namespace NewsApp.API.Data.Entities
         public string SourceUrl { get; set; }
 
         public DateTime PublishDate { get; set; }
+        
+        public List<Comment> Comments { get; set; } = [];
+        
+        
     }
 }

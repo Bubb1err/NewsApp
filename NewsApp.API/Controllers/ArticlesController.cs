@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NewsApp.API.Application.Articles;
@@ -18,6 +19,8 @@ namespace NewsApp.API.Controllers
         }
 
         [HttpGet]
+        [Authorize]
+
         public async Task<IActionResult> GetAllArticles()
         {
             var getArticlesQuery = new GetArticlesQuery();
