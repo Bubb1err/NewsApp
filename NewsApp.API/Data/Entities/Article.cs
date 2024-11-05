@@ -12,7 +12,6 @@ namespace NewsApp.API.Data.Entities
 
         public DateTime PublishDate { get; set; }
         
-        public List<Guid> CommentsId { get; set; } = new List<Guid>();
         public List<Comment> Comments { get; set; } = [];
         
         
