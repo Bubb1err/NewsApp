@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using NewsApp.API.Data.Entities;
 using NewsApp.API.Data.Repository.Base;
 using NewsApp.Shared.Models.Base;
 using NewsApp.Shared.Models.Dto;
@@ -24,7 +25,7 @@ namespace NewsApp.API.Application.Articles
 
         public async Task<DataCollectionApiResponseDto<ArticleDto>> Handle(GetArticlesQuery request, CancellationToken cancellationToken)
         {
-            var articles = await _unitOfWork.Articles.GetAll().ToListAsync();
+            var articles = await _unitOfWork.GetRepository<Article>().GetAll().ToListAsync();
 
             var articlesDto = _mapper.Map<List<ArticleDto>>(articles);
 

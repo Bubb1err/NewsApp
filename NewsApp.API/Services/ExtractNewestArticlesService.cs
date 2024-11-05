@@ -7,9 +7,11 @@ using NewsApp.Shared.Models;
 using System.Text;
 using System.Web;
 using System.Xml.Linq;
+using NewsApp.API.Atributes;
 
 namespace NewsApp.API.Services
 {
+    [Service]
     public class ExtractNewestArticlesService
     {
         private readonly UnitOfWork _unitOfWork;
@@ -27,11 +29,11 @@ namespace NewsApp.API.Services
 
             foreach (var article in articlesToSave)
             {
-                if (!_unitOfWork.Articles.GetAll().Any(a => a.SourceUrl == article.SourceUrl))
+                if (!_unitOfWork.GetRepository<Article>().GetAll().Any(a => a.SourceUrl == article.SourceUrl))
                 {
                     try
                     {
-                        await _unitOfWork.Articles.AddAsync(article);
+                        await _unitOfWork.GetRepository<Article>().AddAsync(article);
                         await _unitOfWork.SaveAsync();
                         Console.WriteLine($"Saved article: {article.Title}");
                     }

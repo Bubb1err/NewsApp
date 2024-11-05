@@ -4,9 +4,9 @@ using NewsApp.Shared.Models.Dto.Coment;
 
 namespace NewsApp.API.Application.Comments
 {
-    public sealed class GetCommentQuery(string name) : IRequest<DataApiResponseDto<CommentDto>>
+    public sealed class GetCommentQuery(string Id) : IRequest<DataApiResponseDto<CommentDto>>
     {
-        public string name { get; set; } = name; // The ID of the comment to retrieve
+        public string Id { get; set; } = Id; // The ID of the comment to retrieve
 
       
     }

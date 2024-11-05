@@ -4,12 +4,14 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using NewsApp.API.Atributes;
 using NewsApp.API.Data.Entities;
 using NewsApp.API.Data.Repository.Base;
 using Claim = System.Security.Claims.Claim;
 
 namespace NewsApp.API.Services;
 
+[Service]
 public class AccessControlService(
     UserManager<User> userManager,
     IConfiguration configuration)

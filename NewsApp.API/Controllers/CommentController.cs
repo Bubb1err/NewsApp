@@ -43,13 +43,14 @@ namespace NewsApp.API.Controllers;
             createCommentCommand.UserId = user.Id; 
             var comment = await _mediator.Send(createCommentCommand);
 
-            return CreatedAtAction(nameof(GetComment), new { id = comment.Item.Content}, comment);
+            return CreatedAtAction(nameof(GetComment), new { id = comment.Item.Id }, comment);
+
         }
 
-        [HttpGet("{name}")]
-        public async Task<ActionResult<DataApiResponseDto<CommentDto>>> GetComment(string name)
+        [HttpGet("{id}")]
+        public async Task<ActionResult<DataApiResponseDto<CommentDto>>> GetComment(string id)
         {
-            var comment = await _mediator.Send(new GetCommentQuery(name));
+            var comment = await _mediator.Send(new GetCommentQuery(id));
 
             if (comment == null)
             {
@@ -58,6 +59,7 @@ namespace NewsApp.API.Controllers;
 
             return Ok(new DataApiResponseDto<CommentDto> { Item = comment.Item });
         }
+       
         
         
 

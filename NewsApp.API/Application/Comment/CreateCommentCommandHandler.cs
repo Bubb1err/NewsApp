@@ -29,7 +29,7 @@ namespace NewsApp.API.Application.Comments
             };
 
             
-            await _unitOfWork.Comment.AddAsync(comment);
+            await _unitOfWork.GetRepository<Comment>().AddAsync(comment);
             await _unitOfWork.SaveAsync();
 
             var commentDto = _mapper.Map<CommentDto>(comment);

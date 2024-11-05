@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using NewsApp.API.Atributes;
 using NewsApp.API.Data.Entities;
 using NewsApp.API.mapper;
 
@@ -81,15 +82,14 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddRazorPages();
 
 builder.Services.AddHangfire(x => x.UseSqlServerStorage(dbConnectionString));
+
 builder.Services.AddHangfireServer();
-builder.Services.AddScoped<UnitOfWork>();
-builder.Services.AddScoped<ExtractNewestArticlesService>();
+
+builder.Services.AddServicesWithAttribute(Assembly.GetExecutingAssembly());
+
 builder.Services.AddMediatR(cfg => { cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()); });
+
 builder.Services.AddAutoMapper(typeof(MappingProfile));
-
-builder.Services.AddScoped<AccessControlService>();
-
-builder.Services.AddScoped<ITokenService, TokenService>();
 
 
 

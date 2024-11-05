@@ -19,6 +19,11 @@ namespace NewsApp.API.Data.EntityTypeConfigurations
             builder.Property(x => x.SourceUrl).IsRequired();
 
             builder.HasIndex(x => x.SourceUrl).IsUnique();
+            
+            builder.HasMany(a => a.Comments)
+                .WithOne(c => c.Article)
+                .HasForeignKey(c => c.ArticleId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

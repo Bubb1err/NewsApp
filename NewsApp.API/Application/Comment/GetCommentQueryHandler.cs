@@ -21,7 +21,7 @@ namespace NewsApp.API.Application.Comments
 
         public async Task<DataApiResponseDto<CommentDto>> Handle(GetCommentQuery request, CancellationToken cancellationToken)
         {
-            var comment = await _unitOfWork.Comment.GetFirstOrDefaultAsync(e => e.User.Name == request.name);
+            var comment = await _unitOfWork.GetRepository<Comment>().GetFirstOrDefaultAsync(e => e.User.Id == request.Id);
 
             if (comment == null)
             {
