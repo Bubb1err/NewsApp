@@ -1,6 +1,4 @@
-﻿
-using Chatty.Shared.Constants;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -88,10 +86,13 @@ public class CombinedAuthenticationHandler : AuthenticationHandler<Authenticatio
 
                 var principal = handler.ValidateToken(headerValueTrimmed, tokenValidationParameters, out SecurityToken validatedToken);
                 var jwtSecurityToken = validatedToken as JwtSecurityToken;
+             const string EmailClaims = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress";
+
 
                 if (jwtSecurityToken == null)
                     return AuthenticateResult.Fail("Invalid token");
-                var email = principal.Claims.FirstOrDefault(x => x.Type == StringConstants.EmailClaims)?.Value;
+                
+                var email = principal.Claims.FirstOrDefault(x => x.Type == EmailClaims)?.Value;
 
                 if (string.IsNullOrEmpty(email))
                 {
