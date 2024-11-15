@@ -1,0 +1,95 @@
+@page "/news"
+@using NewsApp.Shared.Models.Base
+@using NewsApp.Shared.Models.Dto
+
+@inject HttpClient Http
+
+<PageTitle>Articles</PageTitle>
+
+
+
+
+<h2>Articles List</h2>
+<div class="card-container">
+
+    @if (articles == null)
+    {
+        <p>Loading.. </p>
+    }
+    else
+    {
+        @foreach (var article in articles.Items)
+        {
+            <div class="card" @onclick=" () => ShowArticleDetails(article)">
+                <h3>@article.Title</h3>
+                <p>@(article.Content.Length > 100 ? article.Content.Substring(0, 100) + "..." : article.Content)</p>
+                <p>
+                    <small>Published on: @article.PublishDate.ToShortDateString()</small>
+                </p>
+                
+            </div>
+            if (showModal)
+        { 
+            <ArticleDetailModal Title="@selectedArticleTitle" Content="@selectedArticleContent" OnClose="CloseModal"/>
+        }
+        }
+
+        
+    }
+</div>
+
+
+
+
+@code
+{
+    private DataCollectionApiResponseDto<ArticleDto> articles;
+    private bool showModal = false;
+    private string selectedArticleTitle;
+    private string selectedArticleContent;
+
+    private void ShowArticleDetails(ArticleDto article)
+    {
+        Console.WriteLine($"Clicked on article: {article.Title}");
+        selectedArticleTitle = article.Title;
+        selectedArticleContent = article.Content;
+        showModal = true;
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        articles = await Http.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("api/Articles");
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+    
+    
+    
+}
+
+
+
+<style>
+    .card-container {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 8px;
+        flex: 1 1 300px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        
+        /* Optional styles to make the card look clickable */
+        transition: background-color 0.3s;
+    }
+    .card:hover {
+        background-color: #f0f0f0; /* Light gray on hover */
+    }
+</style>

@@ -19,7 +19,7 @@ namespace NewsApp.API.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+        
 
         public async Task<IActionResult> GetAllArticles()
         {
