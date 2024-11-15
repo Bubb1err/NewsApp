@@ -1,13 +1,15 @@
+@rendermode InteractiveServer
+
 @page "/news"
+
+
+
 @using NewsApp.Shared.Models.Base
 @using NewsApp.Shared.Models.Dto
 
 @inject HttpClient Http
 
 <PageTitle>Articles</PageTitle>
-
-
-
 
 <h2>Articles List</h2>
 <div class="card-container">
@@ -16,33 +18,32 @@
     {
         <p>Loading.. </p>
     }
+
     else
     {
-        @foreach (var article in articles.Items)
+        foreach (var articleDto in articles.Items)
         {
-            <div class="card" @onclick=" () => ShowArticleDetails(article)">
-                <h3>@article.Title</h3>
-                <p>@(article.Content.Length > 100 ? article.Content.Substring(0, 100) + "..." : article.Content)</p>
+            <div class="card" @onclick=" () => ShowArticleDetails(articleDto)">
+                <h3>@articleDto.Title</h3>
+                <p>@(articleDto.Content.Length > 100 ? articleDto.Content.Substring(0, 100) + "..." : articleDto.Content)</p>
                 <p>
-                    <small>Published on: @article.PublishDate.ToShortDateString()</small>
+                    <small>Published on: @articleDto.PublishDate.ToShortDateString()</small>
                 </p>
-                
             </div>
-            if (showModal)
-        { 
+        }
+
+        if (showModal)
+        {
             <ArticleDetailModal Title="@selectedArticleTitle" Content="@selectedArticleContent" OnClose="CloseModal"/>
         }
-        }
-
-        
     }
+
 </div>
-
-
 
 
 @code
 {
+
     private DataCollectionApiResponseDto<ArticleDto> articles;
     private bool showModal = false;
     private string selectedArticleTitle;
@@ -51,25 +52,59 @@
     private void ShowArticleDetails(ArticleDto article)
     {
         Console.WriteLine($"Clicked on article: {article.Title}");
+
+
         selectedArticleTitle = article.Title;
         selectedArticleContent = article.Content;
         showModal = true;
     }
-    
+
     protected override async Task OnInitializedAsync()
     {
-        articles = await Http.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("api/Articles");
+        //articles = await Http.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("api/Articles");
+
+        articles = new DataCollectionApiResponseDto<ArticleDto>();
+
+        var article1 = new ArticleDto
+        {
+            Id = Guid.NewGuid(),
+            Title = "Article 1",
+            Link = "https://example.com/article1",
+            Content = "Content for article 1",
+            PublishDate = DateTime.Now.AddDays(-1)
+        };
+
+        var article2 = new ArticleDto
+        {
+            Id = Guid.NewGuid(),
+            Title = "Article 2",
+            Link = "https://example.com/article2",
+            Content = "Content for article 2",
+            PublishDate = DateTime.Now.AddDays(-2)
+        };
+
+        var article3 = new ArticleDto
+        {
+            Id = Guid.NewGuid(),
+            Title = "Article 3",
+            Link = "https://example.com/article3",
+            Content = "Content for article 3",
+            PublishDate = DateTime.Now.AddDays(-3)
+        };
+
+        // Add articles to the Items list
+        articles.Items.Add(article1);
+        articles.Items.Add(article2);
+        articles.Items.Add(article3);
     }
 
     private void CloseModal()
     {
         showModal = false;
     }
-    
-    
-    
-}
 
+
+}
 
 
 <style>
@@ -85,11 +120,9 @@
         flex: 1 1 300px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         cursor: pointer;
-        
-        /* Optional styles to make the card look clickable */
         transition: background-color 0.3s;
     }
     .card:hover {
-        background-color: #f0f0f0; /* Light gray on hover */
+        background-color: #f0f0f0;
     }
 </style>
