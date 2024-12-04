@@ -26,6 +26,8 @@ public class AuthenticationController(
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterCommand registerCommand)
     {
+        
+        
         var user = await _mediator.Send(registerCommand);
 
         var accountSeed = new NewAccountSeedCommand(user.Item.Id);

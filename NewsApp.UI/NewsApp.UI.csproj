@@ -64,17 +64,19 @@
     <AdditionalFiles Include="Components\Layout\MainLayout.razor" />
     <AdditionalFiles Include="Components\Layout\NavMenu.razor" />
     <AdditionalFiles Include="Components\Pages\Articles.razor" />
-    <AdditionalFiles Include="Components\Pages\Auth.razor" />
-    <AdditionalFiles Include="Components\Pages\Counter.razor" />
     <AdditionalFiles Include="Components\Pages\Error.razor" />
     <AdditionalFiles Include="Components\Pages\Home.razor" />
-    <AdditionalFiles Include="Components\Pages\Weather.razor" />
     <AdditionalFiles Include="Components\Routes.razor" />
     <AdditionalFiles Include="Components\_Imports.razor" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\NewsApp.Shared\NewsApp.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MatBlazor" Version="2.10.0" />
+    <PackageReference Include="MudBlazor" Version="8.0.0-preview.5" />
   </ItemGroup>
 
 </Project>

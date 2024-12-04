@@ -5,19 +5,35 @@ using NewsApp.Shared.Models.Dto.User;
 
 namespace NewsApp.API.Application.Authentication.Register
 {
-    public sealed class RegisterCommand(string name, string email, string password, string confirmPassword)
-        : IRequest<DataApiResponseDto<UserDto>>
+    public class RegisterCommand : IRequest<DataApiResponseDto<UserDto>>
     {
-        public string Name { get; } = name;
+        [Required]
+        public string Name { get; set; }
 
+        [Required]
         [EmailAddress]
-        public string Email { get; } = email;
+        public string Email { get; set; }
 
+        [Required]
         [DataType(DataType.Password)]
-        public string Password { get; } = password;
+        public string Password { get; set; }
 
+        [Required]
         [DataType(DataType.Password)]
         [Compare(nameof(Password))]
-        public string ConfirmPassword { get; } = confirmPassword;
+        public string ConfirmPassword { get; set; }
+
+        // Default constructor for deserialization
+        public RegisterCommand() { }
+
+        // Optional: Use the constructor for convenience
+        public RegisterCommand(string name, string email, string password, string confirmPassword)
+        {
+            Name = name;
+            Email = email;
+            Password = password;
+            ConfirmPassword = confirmPassword;
+        }
     }
+
 }

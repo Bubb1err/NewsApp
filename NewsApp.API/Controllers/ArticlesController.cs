@@ -19,13 +19,19 @@ namespace NewsApp.API.Controllers
         }
 
         [HttpGet]
-        
-
         public async Task<IActionResult> GetAllArticles()
         {
             var getArticlesQuery = new GetArticlesQuery();
 
             return Ok(await _mediator.Send(getArticlesQuery));
+        }
+        
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAllArticleById(Guid id)
+        {
+            var getArticleByIdQuery = new GetArticleByIdQuery(id);
+
+            return Ok(await _mediator.Send(getArticleByIdQuery));
         }
     }
 }

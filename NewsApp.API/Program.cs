@@ -4,6 +4,7 @@ using NewsApp.API.Data;
 using NewsApp.API.Data.Repository.Base;
 using NewsApp.API.Services;
 using System.Reflection;
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -90,6 +91,9 @@ builder.Services.AddServicesWithAttribute(Assembly.GetExecutingAssembly());
 builder.Services.AddMediatR(cfg => { cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()); });
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+var config = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>());
+config.AssertConfigurationIsValid();
+
 
 
 

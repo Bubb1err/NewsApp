@@ -25,7 +25,12 @@ namespace NewsApp.API.Application.Articles
 
         public async Task<DataCollectionApiResponseDto<ArticleDto>> Handle(GetArticlesQuery request, CancellationToken cancellationToken)
         {
-            var articles = await _unitOfWork.GetRepository<Article>().GetAll().ToListAsync();
+            var articles = await _unitOfWork
+                .GetRepository<Article>()
+                .GetAll()
+                .OrderByDescending( a =>a.PublishDate )
+                
+                .ToListAsync(cancellationToken);
 
             var articlesDto = _mapper.Map<List<ArticleDto>>(articles);
 

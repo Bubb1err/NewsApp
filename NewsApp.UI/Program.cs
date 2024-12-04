@@ -1,7 +1,9 @@
+using MatBlazor;
 using NewsApp.UI.Components;
 
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +14,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5296") });
 
+builder.Services.AddMudServices();
 
 builder.Services.AddAuthentication(options =>
     {

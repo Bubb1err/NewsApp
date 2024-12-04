@@ -25,7 +25,7 @@ namespace NewsApp.API.Services
         {
             var articles = await GetArticles();
 
-            var articlesToSave = articles.Select(a => new Article { Title = a.Title, Content = a.Content, PublishDate = a.PublishDate, SourceUrl = a.Link});
+            var articlesToSave = articles.Select(a => new Article { Title = a.Title, Content = a.Content, PublishDate = a.PublishDate, SourceUrl = a.SourceUrl});
 
             foreach (var article in articlesToSave)
             {
@@ -51,7 +51,7 @@ namespace NewsApp.API.Services
 
             foreach (var article in articles)
             {
-                var content = await ParseContentFromPage(article.Link);
+                var content = await ParseContentFromPage(article.SourceUrl);
                 article.Content = content;
             }
 
@@ -59,7 +59,7 @@ namespace NewsApp.API.Services
             foreach (var article in articles)
             {
                 sb.AppendLine(article.Title);
-                sb.AppendLine(article.Link);
+                sb.AppendLine(article.SourceUrl);
                 sb.AppendLine(article.Content);
                 sb.AppendLine(article.PublishDate.ToString());
             }
@@ -84,7 +84,7 @@ namespace NewsApp.API.Services
                     .Select(item => new ArticleDto
                     {
                         Title = item.Element("title")?.Value,
-                        Link = item.Element("link")?.Value,
+                        SourceUrl = item.Element("link")?.Value,
                         PublishDate = RssDateConverter.ConvertRssDateToDateTime(item.Element("pubDate")?.Value) ?? DateTime.Now
                     }).ToList();
 

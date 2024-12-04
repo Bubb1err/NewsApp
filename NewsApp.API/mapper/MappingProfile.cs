@@ -10,11 +10,14 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        CreateMap<Article, ArticleDto>();
-        
-        CreateMap<User, UserDto>();
+        CreateMap<Article, ArticleDto>()
+            .ForMember(dest => dest.Comments,
+                opt => opt.MapFrom(src => src.Comments)); 
         
         CreateMap<Comment, CommentDto>();
         
+        CreateMap<User, UserDto>();
+
+
     }
 }

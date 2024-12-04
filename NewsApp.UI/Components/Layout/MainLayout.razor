@@ -1,23 +1,43 @@
-﻿@inherits LayoutComponentBase
+﻿@using MudBlazor
+@using NewsApp.UI.Components.Pages
+@inherits LayoutComponentBase  
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu/>
-    </div>
+@inject NavigationManager Navigation
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+
+<MudThemeProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1" Class="appbar-gradient" >
+        <MudText Typo="Typo.h5" Class="ml-3">News</MudText>
+        <MudSpacer />
+
+
+        <div class="d-flex justify-content-end">
+
+        <MudNavLink Icon="@Icons.Material.Filled.Person" Href="/register" Match="NavLinkMatch.All"></MudNavLink>
         </div>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
 
-<div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
-</div>
+    </MudAppBar>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+
+@code
+{
+    private void NavigateToRegister()
+    {
+        Navigation.NavigateTo("/register");
+    }
+    
+    
+}
+<style>
+.appbar-gradient {
+    background: linear-gradient(90deg, #98ff98 0%, #3eb489 100%);
+    color: white; /* Adjust text/icon color for better visibility */
+}
+</style>
