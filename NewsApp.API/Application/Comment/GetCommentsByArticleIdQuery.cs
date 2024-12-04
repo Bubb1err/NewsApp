@@ -35,14 +35,17 @@ public class GetCommentsByArticleIdHandler : IRequestHandler<GetCommentsByArticl
 
         var comments = await _unitOfWork.GetRepository<Comment>()
             .GetAll(c => c.ArticleId.ToString() == request.ArticleId)
+            .Include(c => c.User)
+            
             .ToListAsync(cancellationToken: cancellationToken);
         
         return comments.Select(c => new CommentDto
         {
             Id = c.Id,
             Content = c.Content,
+            UserName = c.User.UserName,
             UserId = new Guid(c.UserId),
-            ArticleId = c.ArticleId
+            
         }).ToList();
     }
 }
