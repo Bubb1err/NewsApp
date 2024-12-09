@@ -66,7 +66,7 @@ public class AuthenticationController(
             Item = new AuthenticationResponseDto
             {
                 JwtToken = token,
-                //UserId = new Guid(currentUser.Value) 
+                UserId = new Guid(currentUser.Value) 
             }
         });
     }
