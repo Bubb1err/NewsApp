@@ -9,78 +9,93 @@
 @inject CustomAuthenticationService AuthService
 
 
-<MudDialog Style="width: 1000px; max-height: 1000px; padding: 16px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);">
+<MudDialog  Style="width: 60vw; height: 40vw; border-radius: 16px;">
+
     <DialogContent>
         @if (_loading)
         {
-        <MudProgressCircular Indeterminate="true"  Style="margin: auto; display: block;" />
+            <MudProgressCircular Indeterminate="true" Style="margin: auto; display: block;"/>
         }
         else
         {
-        <MudList T="CommentDto" Style="overflow-y: auto; max-height: 400px; margin-bottom: 16px;">
-            @foreach (var comment in _comments)
-            {
-            <MudListItem Style="padding: 8px 16px; border-bottom: 1px solid #e0e0e0;">
-                <MudText Typo="Typo.body1" Style="color: #333; margin-bottom: 4px;">
-                    @comment.Content
-                </MudText>
-                <MudText Typo="Typo.caption" Style="color: #757575;">
-                    @comment.UserName
-                </MudText>
-            </MudListItem>
-            }
-        </MudList>
+            <MudList T="CommentDto">
+                @foreach (var comment in _comments)
+                {
+                    <MudListItem >
+                        <MudText >
+                            @comment.UserName
+                        </MudText>
+                        <MudText >
+                            @comment.Content
+                        </MudText>
+
+                    </MudListItem>
+                }
+            </MudList>
         }
 
-        <MudTextField
-            @bind-Value="_newComment"
-            Placeholder="Write a comment..."
-            Lines="3"
-            FullWidth="true"
-            Style="margin-bottom: 16px; border-radius: 8px;" />
+        <div style="position: absolute; bottom: 16px; width: 95%; padding: 0 16px;">
+            <!-- Input Field -->
+            <div style="position: relative; width: 100%; border-radius: 50px; overflow: hidden; border: 1px solid #ccc;">
+                <MudTextField
+                    @bind-Value="_newComment"
+                    Placeholder="Write a comment..."
+                    FullWidth="true"
+                    Variant="Variant.Outlined"
+                     />
 
-        <MudButton
-            Variant="Variant.Filled"
-            Color="Color.Primary"
-            OnClick="PostComment"
-            Disabled="@string.IsNullOrWhiteSpace(_newComment)"
-            Style="width: 100%; padding: 12px 0; text-transform: uppercase;">
-            Post Comment
-        </MudButton>
+                <!-- Floating Button -->
+                <MudFab
+                    style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); height: 32px; width: 32px; border: none; background-color: #007BFF; color: white; border-radius: 50%; cursor: pointer;"
+                    Color="Color.Primary"
+                    OnClick="PostComment"
+                    Disabled="@string.IsNullOrWhiteSpace(_newComment)"
+                    StartIcon="@Icons.Material.Filled.Send" />
+            </div>
+        </div>
+        
     </DialogContent>
+
 </MudDialog>
 
+
 @code {
-    
+
     private bool _loading = true;
-    private Guid currentArticle ;
+    private Guid currentArticle;
     private List<CommentDto> _comments = new();
     private string _newComment = string.Empty;
-    private bool isAuthenticated= false;
+    private bool isAuthenticated = false;
+
+    private Guid UserId;
 
 
-    [CascadingParameter]
-    private MudDialogInstance MudDialog { get; set; }
+    [CascadingParameter] private MudDialogInstance MudDialog { get; set; }
 
-    [Inject]
-    private HttpClient HttpClient { get; set; }
+    [Inject] private HttpClient HttpClient { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        currentArticle =  CommentService._currentarticleId;
+        currentArticle = CommentService._currentarticleId;
         await LoadComments();
     }
-    
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             isAuthenticated = await AuthService.IsUserAuthenticatedAsync();
 
+            // UserId = await UserService.GetUserId();
+
             StateHasChanged();
         }
     }
-    
+
+    private string GetStyle(Guid commentUserId)
+    {
+        return $"padding: 8px 16px; border-bottom: 1px solid #e0e0e0; background-color: {(commentUserId == UserId ? "#3F5ACE" : "#53CE3F")};";
+    }
 
     private async Task LoadComments()
     {
@@ -98,22 +113,19 @@
             _loading = false;
         }
     }
-    
+
     private async Task PostComment()
     {
         if (isAuthenticated)
         {
-
-
             if (!string.IsNullOrWhiteSpace(_newComment))
             {
                 try
                 {
-
                     var newComment = new CreateCommentDto()
                     {
                         Content = _newComment,
-                        UserId = await UserService.GetUserId(),
+                        UserId = UserId,
                         ArticleId = currentArticle
                     };
                     await CommentService.CreateComment(newComment);
@@ -130,15 +142,11 @@
         else
         {
             Navigation.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
-
         }
-        
-
-
     }
 
-    
-    
 
     private void Ok() => MudDialog.Close(DialogResult.Ok(true));
+
+
 }

@@ -52,7 +52,6 @@
 
 @code {
     
-    private bool _licenseAccepted = false;
     [Parameter] public Guid Id { get; set; }
     private DataApiResponseDto< ArticleDto?> article;
     private string newComment = string.Empty;
@@ -66,11 +65,7 @@
         CommentService._currentarticleId = Id;
         
         var dialog = await DialogService.ShowAsync<Dialog>("Comments");
-        var result = await dialog.Result;
-        if (!result.Canceled)
-        {
-            _licenseAccepted = (bool)(result.Data ?? false);
-        }
+        
     }
    
     

@@ -29,7 +29,7 @@ public class CustomAuthenticationService
         var result = await response.Content.ReadFromJsonAsync<DataApiResponseDto<AuthenticationResponseDto>>();
         
         await _localStorage.SetItemAsync("authToken", result.Item.JwtToken);
-        await _localStorage.SetItemAsync("userId", result.Item.UserId);
+        //await _localStorage.SetItemAsync("userId", result.Item.UserId);
 
         _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", result.Item.JwtToken);
 
