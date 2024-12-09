@@ -1,0 +1,47 @@
+.articles-list-title {
+    font-size: 40px;
+    font-weight: 600;
+}
+
+.articles-list-content {
+    font-size: 20px;
+    font-weight: 300;
+}
+
+.articles-list-controls {
+    display: flex;
+    justify-content: space-between;
+}
+
+.article-list-block {
+    width: 70%;
+    cursor: pointer;
+}
+
+    .article-list-block:hover .articles-list-title {
+        text-decoration: underline;
+    }
+
+.article-header {
+    font-size: 48px;
+    font-weight: 600;
+}
+
+.article-content {
+    font-size: 24px;
+    font-weight: 300;
+}
+
+.article-source {
+    font-size: 20px;
+    font-weight: 300;
+}
+
+.article-block {
+    margin-top: 5em;
+}
+
+.article-controls {
+    display: flex;
+    justify-content: space-between;
+}

@@ -10,8 +10,7 @@
 @using NewsApp.UI.Service
 @inject HttpClient Http
 
-<MudContainer MaxWidth="MaxWidth.Large">
-    <MudText Typo="Typo.h4" Class="mb-4">Articles</MudText>
+<MudContainer MaxWidth="MaxWidth.Large" Style="margin-top: 5em;">
 
     @if (articles == null)
     {
@@ -24,23 +23,32 @@
     }
     else
     {
-    <MudList T="ArticleDto">
         @foreach (var article in articles.Items)
         {
-        <MudListItem T="ArticleDto"  @onclick="() => NavigateToArticleDetail(article.Id)">
-            <MudCard Class="mb-3">
-                <MudCardContent>
-                    <MudText Typo="Typo.h6">@article.Title</MudText>
-                    <MudText Typo="Typo.body2">@article.PublishDate.ToShortDateString()</MudText>
-                    <MudText Typo="Typo.body1">@article.Content.Substring(0, Math.Min(200, article.Content.Length))...</MudText>
-                    
-                    <MudIconButton Icon="@Icons.Material.Filled.Favorite" Color="@(IsLiked ? Color.Primary : Color.Dark)"  aria-label="Like" OnClick="ToggleLike"/>
-                    <MudIconButton Icon="@Icons.Material.Filled.Bookmark" Color="@(IsSaved ? Color.Primary : Color.Dark)"  aria-label="Like" OnClick="ToggleSave"/>
-                </MudCardContent>
-            </MudCard>
-        </MudListItem>
+            if (article.Title.Length > 0 && article.Content.Length > 0)
+            {
+                <div class="article-list-block" @onclick="() => NavigateToArticleDetail(article.Id)">
+                    @if (article.SourceUrl != null)
+                    {
+                        <a class="article-source" href="@article.SourceUrl">BBCNews</a>
+                    }
+                    else
+                    {
+                        <p class="article-source">Original</p>
+
+                    }
+                    <h2 class="articles-list-title">@article.Title</h2>
+                    <p class="articles-list-content">@article.Content.Substring(0, Math.Min(200, article.Content.Length))...</p>
+                    <div class="articles-list-controls">
+                        <div>
+                            <MudIconButton Icon="@Icons.Material.Filled.Favorite" Color="@(IsLiked ? Color.Primary : Color.Dark)" aria-label="Like" OnClick="ToggleLike" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Bookmark" Color="@(IsSaved ? Color.Primary : Color.Dark)" aria-label="Like" OnClick="ToggleSave" />
+                        </div>
+                        <p>@article.PublishDate.ToShortDateString()</p>
+                    </div>
+                </div>
+            } 
         }
-    </MudList>
     }
 </MudContainer>
 

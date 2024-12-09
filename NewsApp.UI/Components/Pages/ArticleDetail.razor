@@ -10,7 +10,7 @@
 @inject CommentService CommentService
 <MudDialogProvider />
 
-<MudContainer MaxWidth="MaxWidth.Large">
+<MudContainer MaxWidth="MaxWidth.Medium">
 
     @if (article == null)
     {
@@ -19,30 +19,49 @@
     }
     else
     {
-        <MudCard Class="mb-3">
-            <MudCardContent>
-                @if (article.Item.SourceUrl != null)
-                {
-                    <MudText Typo="Typo.h6">BBCNews</MudText>
-                }
-                else
-                {
-                    <MudText Typo="Typo.h6">Original</MudText>
+        <div class="article-block">
+            @if (article.Item.SourceUrl != null)
+            {
+                <a class="article-source" href="@article.Item.SourceUrl">BBCNews</a>
+            }
+            else
+            {
+                <p class="article-source">Original</p>
 
-                }
+            }
+            <h1 class="article-header">@article.Item.Title</h1>
+            <p class="article-content">@article.Item.Content</p>
+            <div class="article-controls">
+                <div>
+                    <MudIconButton Icon="@Icons.Material.Filled.Comment" aria-label="Comment" Color="Color.Primary" OnClick="OpenDialogAsync" />
+                </div>
+                <p>@article.Item.PublishDate.ToShortDateString()</p>
+            </div>
+        </div>
+@*          <MudCard Class="mb-3">
+             <MudCardContent>
+                 @if (article.Item.SourceUrl != null)
+                 {
+                     <MudText Typo="Typo.h6">BBCNews</MudText>
+                 }
+                 else
+                 {
+                     <MudText Typo="Typo.h6">Original</MudText>
+
+                 }
 
 
-                <MudText Typo="Typo.h5">@article.Item.Title</MudText>
-                <MudText Typo="Typo.body2">@article.Item.PublishDate.ToShortDateString()</MudText>
-                <MudText Typo="Typo.body1" Class="mt-3">@article.Item.Content</MudText>
-            </MudCardContent>
-        </MudCard>
+                 <MudText Typo="Typo.h5">@article.Item.Title</MudText>
+                 <MudText Typo="Typo.body2">@article.Item.PublishDate.ToShortDateString()</MudText>
+                 <MudText Typo="Typo.body1" Class="mt-3">@article.Item.Content</MudText>
+             </MudCardContent>
+         </MudCard> *@
 
         
 
        
     }
-    <MudIconButton Icon="@Icons.Material.Filled.Comment"  aria-label="Comment" Color="Color.Primary" OnClick="OpenDialogAsync"/>
+   @*  <MudIconButton Icon="@Icons.Material.Filled.Comment"  aria-label="Comment" Color="Color.Primary" OnClick="OpenDialogAsync"/> *@
 
 
 

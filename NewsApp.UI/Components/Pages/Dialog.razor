@@ -45,12 +45,16 @@
                      />
 
                 <!-- Floating Button -->
-                <MudFab
-                    style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); height: 32px; width: 32px; border: none; background-color: #007BFF; color: white; border-radius: 50%; cursor: pointer;"
-                    Color="Color.Primary"
-                    OnClick="PostComment"
-                    StartIcon="@Icons.Material.Filled.Send" />
+                
+@*                  <MudFab
+                     style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); height: 32px; width: 32px; border: none; background-color: #007BFF; color: white; border-radius: 50%; cursor: pointer;"
+                     Color="Color.Primary"
+                     OnClick="PostComment"
+                     StartIcon="@Icons.Material.Filled.Send" /> *@
             </div>
+
+
+            <button @onclick="() => PostComment()">Send</button>
         </div>
         
     </DialogContent>
@@ -110,10 +114,10 @@
         {
             isAuthenticated = await AuthService.IsUserAuthenticatedAsync();
 
-             UserId = await AuthService.GetUserId();
+            UserId = await AuthService.GetUserId();
 
-             Console.WriteLine(UserId);
-             
+            Console.WriteLine(UserId);
+
 
             StateHasChanged();
         }
@@ -140,12 +144,15 @@
 
     private async Task PostComment()
     {
+        Console.WriteLine("1");
         if (isAuthenticated)
         {
+            Console.WriteLine("2");
             if (!string.IsNullOrWhiteSpace(_newComment))
             {
                 try
                 {
+                    Console.WriteLine("3");
                     var newComment = new CreateCommentDto()
                     {
                         Content = _newComment,
@@ -159,7 +166,7 @@
                 }
                 catch (Exception ex)
                 {
-                    // ignored
+                    Console.WriteLine(ex.ToString());
                 }
             }
         }
