@@ -1,12 +1,13 @@
 @rendermode InteractiveServer
 
 @inject NavigationManager Navigation
+@inject CustomAuthenticationService AuthService
 
 @page "/news"
-@using System.Net.Http.Json
-@using MudBlazor
+ 
 @using NewsApp.Shared.Models.Base
 @using NewsApp.Shared.Models.Dto
+@using NewsApp.UI.Service
 @inject HttpClient Http
 
 <MudContainer MaxWidth="MaxWidth.Large">
@@ -34,7 +35,7 @@
                     <MudText Typo="Typo.body1">@article.Content.Substring(0, Math.Min(200, article.Content.Length))...</MudText>
                     
                     <MudIconButton Icon="@Icons.Material.Filled.Favorite" Color="@(IsLiked ? Color.Primary : Color.Dark)"  aria-label="Like" OnClick="ToggleLike"/>
-                    <MudIconButton Icon="@Icons.Material.Filled.Bookmark" Color="Color.Dark" aria-label="Save" Edge="Edge.End" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Bookmark" Color="@(IsSaved ? Color.Primary : Color.Dark)"  aria-label="Like" OnClick="ToggleSave"/>
                 </MudCardContent>
             </MudCard>
         </MudListItem>
@@ -45,26 +46,61 @@
 
 @code {
     private DataCollectionApiResponseDto<ArticleDto>? articles;
-
+    private bool isAuthenticated= false;
     private bool IsLiked = false;
+    
+    private bool IsSaved = false;
 
     
-    protected override async Task OnInitializedAsync()
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        try
+        if (firstRender)
         {
-            articles = await Http.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("http://localhost:5296/api/Articles");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error fetching articles: {ex.Message}");
-            articles = new DataCollectionApiResponseDto<ArticleDto>();
+            isAuthenticated = await AuthService.IsUserAuthenticatedAsync();
+            
+            try
+            {
+                articles = await Http.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("http://localhost:5296/api/Articles");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching articles: {ex.Message}");
+                articles = new DataCollectionApiResponseDto<ArticleDto>();
+            }
+
+            StateHasChanged();
         }
     }
+    
 
     private void ToggleLike()
     {
-        IsLiked = !IsLiked;
+        
+        if (isAuthenticated)
+        {
+            IsLiked = !IsLiked;
+
+        }
+        else
+        {
+            Navigation.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
+        }
+
+
+    }
+    
+    private void ToggleSave()
+    {
+        if (isAuthenticated)
+        {
+            IsSaved = !IsSaved;
+
+        }
+        else
+        {
+            Navigation.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
+        }
 
     }
     private void NavigateToArticleDetail(Guid articleId)

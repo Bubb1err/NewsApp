@@ -4,6 +4,7 @@ using Analytics.API.Application.Authentication.Register;
 using Ardalis.GuardClauses;
 using Chatty.Shared.Exceptions;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NewsApp.API.Application.Authentication;
@@ -65,7 +66,7 @@ public class AuthenticationController(
                 JwtToken = token,
             }
         });
-    }
+    }/*
     
     [HttpPost("changeUserPassword")]
     public async Task<IActionResult> ChangeUserPassword([FromBody] ChangeUserPasswordRequestCommand changePasswordRequestCommand)
@@ -79,10 +80,11 @@ public class AuthenticationController(
         await _mediator.Send(changePasswordRequestCommand);
 
         return Ok(new ApiResponseDto());
-    }
-   
-    
-    protected async Task<User?> GetCurrentUser()
+    }*/
+
+
+    [HttpGet("getUserId")]
+    protected async Task<Guid?> GetCurrentUser()
     {
         if (User.Identity.IsAuthenticated == false)
         {
@@ -99,7 +101,7 @@ public class AuthenticationController(
         var user = await _userManager.FindByIdAsync(id!.Value);
 
         Guard.Against.Null(user, nameof(user));
-        return user;
+        return new Guid(user.Id);
     }
     
 }

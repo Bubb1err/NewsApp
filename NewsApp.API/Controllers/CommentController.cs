@@ -35,6 +35,8 @@ namespace NewsApp.API.Controllers;
         [Authorize]
         public async Task<IActionResult> CreateComment([FromBody] CreateCommentCommand createCommentCommand)
         {
+            Console.WriteLine("SAVING COMMENT");
+            Console.WriteLine(createCommentCommand.Content);
             if (await GetCurrentUser() is var user && user == null || string.IsNullOrEmpty(user.Id))
             {
                 return BadRequest("Failed to get current user.");

@@ -21,6 +21,7 @@ namespace NewsApp.API.Application.Comments
 
         public async Task<DataApiResponseDto<CommentDto>> Handle(CreateCommentCommand request, CancellationToken cancellationToken)
         {
+            Console.WriteLine("SAVING");
             var comment = new Comment
             {
                 Content = request.Content,

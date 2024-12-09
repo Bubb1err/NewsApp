@@ -1,0 +1,44 @@
+@page "/UserInfo"
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+@using NewsApp.UI.Service
+
+@inject CustomAuthenticationService AuthService
+
+@if (isAuthenticated)
+{
+    <p>Welcome back!</p>
+    <button @onclick="Logout">Logout</button>
+}
+else
+{
+    <p>Redirecting to register...</p>
+}
+
+@code {
+    private bool isAuthenticated;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isAuthenticated = await AuthService.IsUserAuthenticatedAsync();
+
+            if (!isAuthenticated)
+            {
+                Navigation.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        isAuthenticated = false;
+    }
+}

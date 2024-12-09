@@ -6,6 +6,11 @@
 
 
 <MudThemeProvider />
+<MudPopoverProvider />
+
+<MudDialogProvider />
+
+<MudSnackbarProvider />
 
 <MudLayout>
     <MudAppBar Elevation="1" Class="appbar-gradient" >
@@ -14,8 +19,7 @@
 
 
         <div class="d-flex justify-content-end">
-
-        <MudNavLink Icon="@Icons.Material.Filled.Person" Href="/register" Match="NavLinkMatch.All"></MudNavLink>
+            <MudNavLink Icon="@Icons.Material.Filled.Person" Href="/UserInfo" Match="NavLinkMatch.All"></MudNavLink>
         </div>
 
 
@@ -25,16 +29,6 @@
     </MudMainContent>
 </MudLayout>
 
-
-@code
-{
-    private void NavigateToRegister()
-    {
-        Navigation.NavigateTo("/register");
-    }
-    
-    
-}
 <style>
 .appbar-gradient {
     background: linear-gradient(90deg, #98ff98 0%, #3eb489 100%);

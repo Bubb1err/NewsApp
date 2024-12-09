@@ -1,9 +1,11 @@
+using Blazored.LocalStorage;
 using MatBlazor;
 using NewsApp.UI.Components;
 
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using MudBlazor.Services;
+using NewsApp.UI.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +14,24 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5296") });
+builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddScoped<CustomAuthenticationService>();
+builder.Services.AddScoped<CommentService>();
+
+builder.Services.AddScoped<UserService>();
+
+builder.Services.AddScoped<ITokenProvider, TokenProvider>();
+builder.Services.AddTransient<AuthorizationMessageHandler>();
+
+/*
+builder.Services.AddHttpClient("AuthorizedClient")
+    .AddHttpMessageHandler<AuthorizationMessageHandler>();
+
+builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthorizedClient"));
+*/
+builder.Services.AddHttpClient();
 
 builder.Services.AddMudServices();
 

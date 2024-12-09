@@ -75,8 +75,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageReference Include="MatBlazor" Version="2.10.0" />
-    <PackageReference Include="MudBlazor" Version="8.0.0-preview.5" />
+    <PackageReference Include="MudBlazor" Version="7.15.0" />
   </ItemGroup>
 
 </Project>

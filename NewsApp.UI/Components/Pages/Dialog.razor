@@ -1,0 +1,130 @@
+@using NewsApp.Shared.Models.Dto.Coment
+@using NewsApp.UI.Service
+@rendermode InteractiveServer
+
+@inject CommentService CommentService
+@inject UserService UserService
+@inject NavigationManager Navigation
+
+@inject CustomAuthenticationService AuthService
+
+
+<MudDialog Style="height: 400px">
+    <DialogContent>
+        @if (_loading)
+        {
+            <MudProgressCircular Indeterminate="true"></MudProgressCircular>
+        }
+        else
+        {
+            <MudList T="CommentDto">
+                @foreach (var comment in _comments)
+                {
+                    <MudListItem>
+                        <MudText>@comment.Content</MudText>
+                        <MudText Typo="Typo.caption">@comment.UserName</MudText>
+                    </MudListItem>
+                }
+            </MudList>
+        }
+        <MudTextField @bind-Value="_newComment" Placeholder="Write a comment..." Lines="3" FullWidth="true" />
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="PostComment" Disabled="@string.IsNullOrWhiteSpace(_newComment)">
+            Post Comment
+        </MudButton>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Ok">Accept</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    
+    private bool _loading = true;
+    private Guid currentArticle ;
+    private List<CommentDto> _comments = new();
+    private string _newComment = string.Empty;
+    private bool isAuthenticated= false;
+
+
+    [CascadingParameter]
+    private MudDialogInstance MudDialog { get; set; }
+
+    [Inject]
+    private HttpClient HttpClient { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        currentArticle =  CommentService._currentarticleId;
+        await LoadComments();
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isAuthenticated = await AuthService.IsUserAuthenticatedAsync();
+
+            StateHasChanged();
+        }
+    }
+    
+
+    private async Task LoadComments()
+    {
+        _loading = true;
+        try
+        {
+            _comments = await CommentService.GetCommentsDto(currentArticle);
+        }
+        catch (Exception ex)
+        {
+            // Handle errors (e.g., log them)
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+    
+    private async Task PostComment()
+    {
+        if (isAuthenticated)
+        {
+
+
+            if (!string.IsNullOrWhiteSpace(_newComment))
+            {
+                try
+                {
+
+                    var newComment = new CreateCommentDto()
+                    {
+                        Content = _newComment,
+                        UserId = new Guid("44632071-60de-4bf6-a7ff-98fcbc15525b"),
+                        ArticleId = currentArticle
+                    };
+                    await CommentService.CreateComment(newComment);
+                    _comments.Clear();
+                    _comments = await CommentService.GetCommentsDto(currentArticle);
+                    _newComment = string.Empty;
+                }
+                catch (Exception ex)
+                {
+                    // ignored
+                }
+            }
+        }
+        else
+        {
+            Navigation.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
+
+        }
+        
+
+
+    }
+
+    
+    
+
+    private void Ok() => MudDialog.Close(DialogResult.Ok(true));
+}

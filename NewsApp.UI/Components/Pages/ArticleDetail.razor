@@ -3,9 +3,12 @@
 @using MudBlazor
 @using NewsApp.Shared.Models.Base
 @using NewsApp.Shared.Models.Dto.Coment
+@using NewsApp.UI.Service
 @inject HttpClient Http
 @rendermode InteractiveServer
-
+@inject IDialogService DialogService
+@inject CommentService CommentService
+<MudDialogProvider />
 
 <MudContainer MaxWidth="MaxWidth.Large">
 
@@ -35,26 +38,65 @@
             </MudCardContent>
         </MudCard>
 
-        <MudText Typo="Typo.h6" Class="mt-5">Comments</MudText>
-
-        <MudTextField @bind-Value="newComment" Label="Write a comment..." FullWidth="true" />
-
-        <MudButton Color="Color.Primary" OnClick="AddComment" Class="mt-2">Post Comment</MudButton>
+        
 
        
     }
+    <MudIconButton Icon="@Icons.Material.Filled.Comment"  aria-label="Comment" Color="Color.Primary" OnClick="OpenDialogAsync"/>
+
+
+
 </MudContainer>
 
-@code {
-    [Parameter] public Guid Id { get; set; }
 
+
+@code {
+    
+    private bool _licenseAccepted = false;
+    [Parameter] public Guid Id { get; set; }
     private DataApiResponseDto< ArticleDto?> article;
     private string newComment = string.Empty;
 
+    private bool isCommentDialogOpen = false;
+    
+    
+
+    private async Task OpenDialogAsync()
+    {
+        CommentService._currentarticleId = Id;
+        
+        var dialog = await DialogService.ShowAsync<Dialog>("Comments");
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            _licenseAccepted = (bool)(result.Data ?? false);
+        }
+    }
+   
+    
     protected override async Task OnInitializedAsync()
     {
         Console.WriteLine($"Page is loading... Article ID: {Id}");
         await FetchArticleDetails();
+    }
+    private void OpenCommentDialog()
+    {
+        isCommentDialogOpen = true;
+    }
+    private void CloseCommentDialog()
+    {
+        isCommentDialogOpen = false;
+    }
+    private void AddComment()
+    {
+        if (!string.IsNullOrEmpty(newComment))
+        {
+            article.Item.Comments.Add(new CommentDto
+            {
+                Content = newComment
+            });
+            newComment = string.Empty; 
+        }
     }
 
     private async Task FetchArticleDetails()
@@ -70,16 +112,5 @@
         }
     }
 
-    private void AddComment()
-    {
-        if (!string.IsNullOrEmpty(newComment))
-        {
-            article.Item.Comments.Add(new CommentDto
-            {
-                Content = newComment
-            });
-
-            newComment = string.Empty; 
-        }
-    }
+  
 }

@@ -1,0 +1,166 @@
+@page "/auth"
+@using System.ComponentModel.DataAnnotations
+@using System.Text.RegularExpressions
+@using NewsApp.Shared.Models.Dto.User
+@using NewsApp.UI.Service
+
+@rendermode InteractiveServer
+
+@inject NavigationManager Navigation
+@inject CustomAuthenticationService AuthenticationService
+
+<MudPaper Class="pa-4 mx-auto mt-6" Elevation="3" MaxWidth="400px">
+    
+    
+    @if (isRegisterForm)
+    {
+
+        <MudText Typo="Typo.h5" Align="Align.Center">Register</MudText>
+        <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+            <MudTextField T="string" Label="Username" Required="true" RequiredError="User name is required!" @bind-Value="RegisterModel.name"/>
+            <MudTextField T="string" Label="Email" Required="true" RequiredError="Email is required!"
+                          Validation="@(new EmailAddressAttribute() { ErrorMessage = "The email address is invalid" })" @bind-Value="RegisterModel.email"/>
+            <MudTextField T="string" Label="Password" HelperText="Choose a strong password" @ref="pwField1"
+                          InputType="InputType.Password"
+                          Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" Required="true"
+                          RequiredError="Password is required!" @bind-Value="RegisterModel.password"/>
+            <MudTextField T="string"
+                          Label="Password" HelperText="Repeat the password" InputType="InputType.Password"
+                          Validation="@(new Func<string, string>(PasswordMatch))" @bind-Value="RegisterModel.confirmPassword"/>
+
+            <div class="d-flex align-center justify-space-between">
+                <MudCheckBox T="bool" Required="true" RequiredError="You must agree" Label="I agree!"/>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" OnClick="RegisterUser" Class="ml-auto">Register</MudButton>
+            </div>
+            <div class="d-flex align-center justify-space-between mt-3">
+                <MudText Typo="Typo.body2">Already have an account?</MudText>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ToggleForm">
+                    Login
+                </MudButton>
+            </div>
+        </MudForm>
+    }
+    else
+    {
+        <MudText Typo="Typo.h5" Align="Align.Center">Login</MudText>
+
+        <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+            <MudTextField T="string" Label="Email" Required="true" RequiredError="Email is required!"
+                          Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})" @bind-Value = "loginModel.email"/>
+        
+            <MudTextField T="string" Label="Password"  @ref="pwField1"
+                          InputType="InputType.Password"
+                          Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" Required="true"
+                          RequiredError="Password is required!" @bind-Value = "loginModel.password"/>
+      
+            <div class="d-flex align-center justify-space-between">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" OnClick="LoginUser" Class="ml-auto">Login</MudButton>
+            </div>
+
+            <div>
+                <MudText Typo="Typo.body2">New user?</MudText>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ToggleForm">
+                    Register
+                </MudButton>
+            </div>
+    
+        </MudForm>
+    }
+    
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <MudText Typo="Typo.body1" Class="mt-2" Color="@MessageColor">@Message</MudText>
+    }
+</MudPaper>
+
+
+@code {
+    private bool isRegisterForm;
+    
+    private MudForm form;
+    bool success;
+    string[] errors = { };
+    MudTextField<string> pwField1;
+    private LoginDto loginModel = new();
+    private RegisterDto RegisterModel = new();
+    private string Message;
+    private Color MessageColor;
+    private string returnUrl = "/"; 
+    
+    private async Task LoginUser()
+    {
+        
+        await AuthenticationService.LoginAsync(loginModel);
+        Navigation.NavigateTo(returnUrl);
+
+     
+    }
+    
+    private async Task RegisterUser()
+    {
+        if (form.IsValid)
+        {
+
+            var isSuccess = await AuthenticationService.RegisterAsync(RegisterModel);
+            if (isSuccess)
+            {
+                loginModel.email = RegisterModel.email;
+                loginModel.password = RegisterModel.password;
+                await AuthenticationService.LoginAsync(loginModel);
+
+                Navigation.NavigateTo(returnUrl);
+
+            }
+            else
+            {
+                Message = $"Registration failed";
+                MessageColor = Color.Error;
+            }
+        }
+        else
+        {
+            Message = "Please fix validation errors.";
+            MessageColor = Color.Warning;
+        }
+     
+    }
+    
+    
+    
+    private void ToggleForm()
+    {
+        isRegisterForm = !isRegisterForm;
+
+    }
+
+    
+    
+    
+    private IEnumerable<string> PasswordStrength(string pw)
+    {
+        if (string.IsNullOrWhiteSpace(pw))
+        {
+            yield return "Password is required!";
+            yield break;
+        }
+        if (pw.Length < 8)
+            yield return "Password must be at least of length 8";
+        if (!Regex.IsMatch(pw, @"[A-Z]"))
+            yield return "Password must contain at least one capital letter";
+        if (!Regex.IsMatch(pw, @"[a-z]"))
+            yield return "Password must contain at least one lowercase letter";
+        if (!Regex.IsMatch(pw, @"[0-9]"))
+            yield return "Password must contain at least one digit";
+    }
+
+    private string PasswordMatch(string arg)
+    {
+        if (pwField1.Value != arg)
+            return "Passwords don't match";
+        return null;
+    }
+
+
+}
+
+
