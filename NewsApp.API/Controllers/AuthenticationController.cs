@@ -4,7 +4,6 @@ using Analytics.API.Application.Authentication.Register;
 using Ardalis.GuardClauses;
 using Chatty.Shared.Exceptions;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NewsApp.API.Application.Authentication;
@@ -59,14 +58,18 @@ public class AuthenticationController(
 
         var token = accessControl.GenerateJWTToken(userClaims);
 
+        var currentUser = userClaims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
+        
+        
         return Ok(new DataApiResponseDto<AuthenticationResponseDto>
         {
             Item = new AuthenticationResponseDto
             {
                 JwtToken = token,
+                UserId = new Guid(currentUser.Value) 
             }
         });
-    }/*
+    }
     
     [HttpPost("changeUserPassword")]
     public async Task<IActionResult> ChangeUserPassword([FromBody] ChangeUserPasswordRequestCommand changePasswordRequestCommand)
@@ -80,11 +83,10 @@ public class AuthenticationController(
         await _mediator.Send(changePasswordRequestCommand);
 
         return Ok(new ApiResponseDto());
-    }*/
-
-
-    [HttpGet("getUserId")]
-    protected async Task<Guid?> GetCurrentUser()
+    }
+   
+    
+    protected async Task<User?> GetCurrentUser()
     {
         if (User.Identity.IsAuthenticated == false)
         {
@@ -93,6 +95,8 @@ public class AuthenticationController(
 
         var id = (User.Identity as ClaimsIdentity).FindFirst(x => x.Type == ClaimTypes.NameIdentifier);
 
+        Console.WriteLine(id.Value);
+        
         if (id is null || string.IsNullOrEmpty(id.Value))
         {
             return null;
@@ -101,7 +105,9 @@ public class AuthenticationController(
         var user = await _userManager.FindByIdAsync(id!.Value);
 
         Guard.Against.Null(user, nameof(user));
-        return new Guid(user.Id);
+        return user;
     }
-    
+
+   
+
 }

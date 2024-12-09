@@ -1,16 +1,23 @@
 using System.Security.Claims;
+using Blazored.LocalStorage;
+using MudBlazor;
 
 namespace NewsApp.UI.Service;
 
 
 public class UserService
 {
-    private readonly HttpClient _httpClient;
+    private readonly ILocalStorageService _localStorage;
 
-    public UserService(HttpClient httpClient)
+    public UserService(ILocalStorageService localStorage)
     {
-        _httpClient = httpClient;
+        _localStorage = localStorage;
     }
 
-    
+    public async Task<Guid> GetUserId()
+    {
+        return await _localStorage.GetItemAsync<Guid>("UserId");
+    }
+
+
 }

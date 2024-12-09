@@ -78,7 +78,7 @@ public class AccessControlService(
         var userClaims = await userManager.GetClaimsAsync(user);
 
         return new List<Claim>()
-        {
+        {   
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.MobilePhone, user.PhoneNumber ?? ""),
             new(ClaimTypes.Name, user.Name ?? ""),

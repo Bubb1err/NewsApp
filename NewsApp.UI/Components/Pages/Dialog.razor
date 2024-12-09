@@ -99,7 +99,7 @@
                     var newComment = new CreateCommentDto()
                     {
                         Content = _newComment,
-                        UserId = new Guid("44632071-60de-4bf6-a7ff-98fcbc15525b"),
+                        UserId = await UserService.GetUserId(),
                         ArticleId = currentArticle
                     };
                     await CommentService.CreateComment(newComment);

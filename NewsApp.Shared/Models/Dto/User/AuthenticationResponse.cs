@@ -3,7 +3,5 @@
 public class AuthenticationResponseDto
 {
     public string JwtToken { get; set; }
-    //public string RefreshToken { get; set; }
-    
-    //public UserInfoDto UserInfoDto { get; set; }
+    public Guid UserId { get; set; }
 }
