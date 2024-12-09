@@ -21,7 +21,7 @@
             <MudList T="CommentDto">
                 @foreach (var comment in _comments)
                 {
-                    <MudListItem >
+                    <MudListItem Class="@GetClassForUser(comment.UserId)">
                         <MudText >
                             @comment.UserName
                         </MudText>
@@ -49,7 +49,6 @@
                     style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); height: 32px; width: 32px; border: none; background-color: #007BFF; color: white; border-radius: 50%; cursor: pointer;"
                     Color="Color.Primary"
                     OnClick="PostComment"
-                    Disabled="@string.IsNullOrWhiteSpace(_newComment)"
                     StartIcon="@Icons.Material.Filled.Send" />
             </div>
         </div>
@@ -58,6 +57,31 @@
 
 </MudDialog>
 
+<style>
+    .dialog-item {
+        background-color: #e8f5e9; 
+        border-radius: 12px;      
+        margin: 8px 0;            
+        padding: 16px;            
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); 
+    }
+
+    .dialog-item:hover { 
+        cursor: pointer;          
+    }
+
+    .dialog-item.user-1 {
+        background-color: #3F5ACE; 
+    }
+
+    .dialog-item.user-2 {
+        background-color: #53CE3F; 
+    }
+    
+    
+    
+
+</style>
 
 @code {
 
@@ -86,16 +110,16 @@
         {
             isAuthenticated = await AuthService.IsUserAuthenticatedAsync();
 
-            // UserId = await UserService.GetUserId();
+             UserId = await AuthService.GetUserId();
+
+             Console.WriteLine(UserId);
+             
 
             StateHasChanged();
         }
     }
 
-    private string GetStyle(Guid commentUserId)
-    {
-        return $"padding: 8px 16px; border-bottom: 1px solid #e0e0e0; background-color: {(commentUserId == UserId ? "#3F5ACE" : "#53CE3F")};";
-    }
+
 
     private async Task LoadComments()
     {
@@ -145,6 +169,20 @@
         }
     }
 
+    private string GetClassForUser(Guid userId)
+    {
+        
+        if (userId == UserId)
+        {
+            return "dialog-item user-1";
+        }
+        return "dialog-item user-2";
+
+    }
+        
+        
+    
+    
 
     private void Ok() => MudDialog.Close(DialogResult.Ok(true));
 

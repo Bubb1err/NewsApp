@@ -16,7 +16,7 @@ public class UserService
 
     public async Task<Guid> GetUserId()
     {
-        return await _localStorage.GetItemAsync<Guid>("UserId");
+        return await _localStorage.GetItemAsync<Guid>("userId");
     }
 
 
