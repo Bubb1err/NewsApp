@@ -11,12 +11,12 @@ namespace NewsApp.API.Application.Authentication.Register;
 
 internal sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, DataApiResponseDto<UserDto>>
 {
-    private readonly UserManager<User> _userManager;
-    private readonly SignInManager<User> _signInManager;
+    private readonly UserManager<Data.Entities.User> _userManager;
+    private readonly SignInManager<Data.Entities.User> _signInManager;
     private readonly UnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public RegisterCommandHandler(UserManager<User> userManager, SignInManager<User> signInManager, UnitOfWork unitOfWork, IMapper mapper)
+    public RegisterCommandHandler(UserManager<Data.Entities.User> userManager, SignInManager<Data.Entities.User> signInManager, UnitOfWork unitOfWork, IMapper mapper)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -26,7 +26,7 @@ internal sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, 
 
     public async Task<DataApiResponseDto<UserDto>> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
-        var user = new User { Name = request.Name, Email = request.Email, UserName = request.Email };
+        var user = new Data.Entities.User { Name = request.Name, Email = request.Email, UserName = request.Email };
         var result = await _userManager.CreateAsync(user, request.Password);
 
         if (!result.Succeeded)

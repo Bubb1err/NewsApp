@@ -7,10 +7,10 @@ namespace NewsApp.API.Application.Authentication.Login
 {
     internal sealed class LoginCommandHandler : IRequestHandler<LoginCommand>
     {
-        private readonly SignInManager<User> _signInManager;
-        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<Data.Entities.User> _signInManager;
+        private readonly UserManager<Data.Entities.User> _userManager;
 
-        public LoginCommandHandler(SignInManager<User> signInManager, UserManager<User> userManager)
+        public LoginCommandHandler(SignInManager<Data.Entities.User> signInManager, UserManager<Data.Entities.User> userManager)
         {
             _signInManager = signInManager;
             _userManager = userManager;

@@ -13,5 +13,7 @@ namespace NewsApp.Shared.Models
         public DateTime PublishDate { get; set; }
         
         public List<CommentDto> Comments { get; set; }
+        
+        public int LikeCount { get; set; }
     }
 }

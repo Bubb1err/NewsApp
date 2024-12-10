@@ -14,7 +14,11 @@ namespace NewsApp.API.Data.Entities
         
         public List<Comment> Comments { get; set; } = [];
         
+        public int LikeCount { get; set; }
         
+        public void AddLike() => LikeCount++;
+        
+        public void RemoveLike() => LikeCount--;
         
         
     }

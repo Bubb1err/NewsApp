@@ -13,10 +13,10 @@ public sealed class ChangeUserEmailRequestCommand : IRequest<ApiResponseDto>
     public bool SendConfirmationCode { get; set; } = true;
 
     [JsonIgnore]
-    public User? User { get; set; }
+    public Data.Entities.User? User { get; set; }
 }
 
-public sealed class ChangeUserEmailRequestCommandHandler(UserManager<User> _userManager) : IRequestHandler<ChangeUserEmailRequestCommand, ApiResponseDto>
+public sealed class ChangeUserEmailRequestCommandHandler(UserManager<Data.Entities.User> _userManager) : IRequestHandler<ChangeUserEmailRequestCommand, ApiResponseDto>
 {
     public async Task<ApiResponseDto> Handle(ChangeUserEmailRequestCommand request, CancellationToken cancellationToken)
     {
