@@ -19,9 +19,12 @@ public class UpdateBookmarksCommandHandler : IRequestHandler<UpdateBookmarksComm
 
     public async Task<DataApiResponseDto<bool>> Handle(UpdateBookmarksCommand request, CancellationToken cancellationToken)
     {
-        Console.WriteLine(request.ToString());
         var user = await _unitOfWork.GetRepository<Data.Entities.User>().GetFirstOrDefaultAsync(e=>e.Id== request.UserId);
 
+        Console.WriteLine("TEST USER DATA UPDATE");
+        Console.WriteLine(request.UserId);
+        Console.WriteLine(user);
+        
         if (request.Value)
         {
             user.AddSaved(request.ArticleId);
@@ -32,7 +35,7 @@ public class UpdateBookmarksCommandHandler : IRequestHandler<UpdateBookmarksComm
             user.RemoveSaved(request.ArticleId);
         }
 
-        Console.WriteLine(user.Saved.ToString());
+        Console.WriteLine(user);
 
         _unitOfWork.GetRepository<Data.Entities.User>().Update(user);
 

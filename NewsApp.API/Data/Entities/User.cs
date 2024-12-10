@@ -29,12 +29,12 @@ public class User : IdentityUser
     public void AddSaved(Guid saved)
     {
         Console.WriteLine(saved);
-        Liked.Add(saved);
+        Saved.Add(saved);
     }
     
     public void RemoveSaved(Guid saved)
     {
-        Liked.Remove(saved);
+        Saved.Remove(saved);
     }
     
 

@@ -54,7 +54,7 @@
                                            Color="@(Likes.Contains(article.Id) ? Color.Primary : Color.Dark)" aria-label="Like"
                                            OnClick="() => ToggleLike(article.Id)"/>
                             <MudIconButton Icon="@Icons.Material.Filled.Bookmark" 
-                                           Color="@(Bookmarks.Contains(article.Id) ? Color.Primary : Color.Dark)" aria-label="Like"
+                                           Color="@(Bookmarks.Contains(article.Id) ? Color.Primary : Color.Dark)" aria-label="Saved"
                                            OnClick="() => ToggleSave(article.Id)"/>
                        
                             </div>
@@ -156,7 +156,7 @@
             
             await UserService.UpdateBookmarks(dto);
              
-            if (Bookmarks.Contains(id))
+            if (!Bookmarks.Contains(id))
             {
                 Bookmarks.Add(id);
             }
