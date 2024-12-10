@@ -34,7 +34,11 @@ namespace NewsApp.API.Controllers
             return Ok(await _mediator.Send(getArticleByIdQuery));
         }
 
-       
+        [HttpGet("popular")]
+        public async Task<IActionResult> GetTopNews()
+        {
+            return Ok(await _mediator.Send(new GetPopularArticlesRequest()));
+        }
 
     }
 }
