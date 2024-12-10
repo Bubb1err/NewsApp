@@ -36,7 +36,7 @@ public class GetCommentsByArticleIdHandler : IRequestHandler<GetCommentsByArticl
         var comments = await _unitOfWork.GetRepository<Comment>()
             .GetAll(c => c.ArticleId.ToString() == request.ArticleId)
             .Include(c => c.User)
-            
+            .OrderBy(c => c.CreatedDate)
             .ToListAsync(cancellationToken: cancellationToken);
         
         return comments.Select(c => new CommentDto

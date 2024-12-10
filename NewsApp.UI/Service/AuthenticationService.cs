@@ -22,7 +22,7 @@ public class CustomAuthenticationService
 
     public async Task<bool> LoginAsync(LoginDto loginDto)
     {
-        var response = await _httpClient.PostAsJsonAsync("http://localhost:5296/api/Authentication/login", loginDto);
+        var response = await _httpClient.PostAsJsonAsync("https://localhost:7220/api/Authentication/login", loginDto);
 
         if (!response.IsSuccessStatusCode) return false;
         
@@ -40,7 +40,7 @@ public class CustomAuthenticationService
 
     public async Task<bool> RegisterAsync(RegisterDto registerDto)
     {
-        var response = await _httpClient.PostAsJsonAsync("http://localhost:5296/api/Authentication/register", registerDto);
+        var response = await _httpClient.PostAsJsonAsync("https://localhost:7220/api/Authentication/register", registerDto);
         return response.IsSuccessStatusCode;
     }
 

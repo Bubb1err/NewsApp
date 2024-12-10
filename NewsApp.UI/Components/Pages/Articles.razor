@@ -69,7 +69,7 @@
             
             try
             {
-                articles = await Http.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("http://localhost:5296/api/Articles");
+                articles = await Http.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("https://localhost:7220/api/Articles");
             }
             catch (Exception ex)
             {

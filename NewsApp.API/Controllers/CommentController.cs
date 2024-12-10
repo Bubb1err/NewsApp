@@ -67,11 +67,6 @@ namespace NewsApp.API.Controllers;
         {
             var comments = await _mediator.Send(new GetCommentsByArticleIdQuery(articleId));
 
-            if (comments == null || comments.Count == 0)
-            {
-                return NotFound();
-            }
-
             return Ok(new DataApiResponseDto<List<CommentDto>> { Item  = comments });
         }
         

@@ -8,7 +8,6 @@
 @rendermode InteractiveServer
 @inject IDialogService DialogService
 @inject CommentService CommentService
-<MudDialogProvider />
 
 <MudContainer MaxWidth="MaxWidth.Medium">
 
@@ -33,61 +32,180 @@
             <p class="article-content">@article.Item.Content</p>
             <div class="article-controls">
                 <div>
-                    <MudIconButton Icon="@Icons.Material.Filled.Comment" aria-label="Comment" Color="Color.Primary" OnClick="OpenDialogAsync" />
+                    <button @onclick="() => OpenDialog()" class="send-button"><i class="bi bi-chat-fill"></i></button>
                 </div>
                 <p>@article.Item.PublishDate.ToShortDateString()</p>
             </div>
         </div>
-@*          <MudCard Class="mb-3">
-             <MudCardContent>
-                 @if (article.Item.SourceUrl != null)
-                 {
-                     <MudText Typo="Typo.h6">BBCNews</MudText>
-                 }
-                 else
-                 {
-                     <MudText Typo="Typo.h6">Original</MudText>
-
-                 }
-
-
-                 <MudText Typo="Typo.h5">@article.Item.Title</MudText>
-                 <MudText Typo="Typo.body2">@article.Item.PublishDate.ToShortDateString()</MudText>
-                 <MudText Typo="Typo.body1" Class="mt-3">@article.Item.Content</MudText>
-             </MudCardContent>
-         </MudCard> *@
-
-        
-
-       
     }
-   @*  <MudIconButton Icon="@Icons.Material.Filled.Comment"  aria-label="Comment" Color="Color.Primary" OnClick="OpenDialogAsync"/> *@
-
-
 
 </MudContainer>
 
+<div class="custom-dialog" style="@(_isDialogOpen ? "display: flex;" : "display: none;")">
+    <div class="custom-dialog-content">
+        <span class="close-btn" @onclick="CloseDialog">×</span>
+        @if (_loading)
+        {
+            <div class="loader">Loading...</div>
+        }
+        else
+        {
+            <h3>Comments (@_comments.Count())</h3>
+            <div class="comments-list">
+                @foreach (var comment in _comments)
+                {
+                    <div class="comment-item @GetClassForUser(comment.UserId)">
+                        <p class="comment-username" style="margin-bottom: 0;">@comment.UserName</p>
+                        <div class="comment-content @GetClassForUser(comment.UserId)">
+                            <p class="comment-text" style="margin-bottom: 0;">@comment.Content</p>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="comment-input-section">
+                <input type="text" placeholder="Write a comment..." @bind="_newComment" class="comment-input" />
+                <button @onclick="PostComment" class="send-button"><i class="bi bi-send"></i></button>
+            </div>
+        }
+    </div>
+</div>
 
+
+<style>
+    .custom-dialog {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .custom-dialog-content {
+        background: #fff;
+        border-radius: 8px;
+        width: 60%;
+        height: 80%;
+        overflow-y: auto;
+        padding: 16px;
+        position: relative;
+    }
+
+    .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 24px;
+        cursor: pointer;
+    }
+
+    .loader {
+        margin: auto;
+        text-align: center;
+    }
+
+    .comments-list {
+        margin: 16px 0;
+        display: flex;
+        flex-direction: column;
+        height: 80%;
+        overflow-y: scroll;
+    }
+
+    .comment-item {
+        margin: 8px 0;
+        padding: 4px;
+        border-radius: 20px;
+        width: 70%;
+        
+    }
+
+    .comment-content {
+        box-shadow: 0 5px 20px rgb(0 0 0 / 53%);
+        padding: 10px 15px;
+        border-radius: 20px;
+    }
+
+        .comment-item.user-1 {
+            align-self: end;
+        }
+
+    .comment-content.user-1 {
+        background-color: #229981;
+        color: #fff;
+    }
+
+    .comment-content.user-2 {
+        background-color: #fff;
+    }
+
+    .comment-username {
+        font-weight: bold;
+    }
+
+    .comment-text {
+        margin-top: 4px;
+    }
+
+    .comment-input-section {
+        display: flex;
+        gap: 8px;
+        margin-top: 16px;
+    }
+
+    .comment-input {
+        flex: 1;
+        padding: 10px 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 0 5px 20px rgb(0 0 0 / 53%);
+        border-radius: 20px;
+    }
+
+    .send-button {
+        color: #000;
+        border: none;
+        cursor: pointer;
+    }
+
+        .send-button:hover {
+            color: #FF8000;
+        }
+
+    .send-button i {
+        font-size: 2em;
+    }
+
+    .custom-dialog-content h3 {
+        font-size: 36px;
+        font-weight: 600;
+    }
+</style>
 
 @code {
-    
+
     [Parameter] public Guid Id { get; set; }
     private DataApiResponseDto< ArticleDto?> article;
     private string newComment = string.Empty;
+    private Dialog dialogInstance;
 
     private bool isCommentDialogOpen = false;
-    
-    
 
-    private async Task OpenDialogAsync()
-    {
-        CommentService._currentarticleId = Id;
-        
-        var dialog = await DialogService.ShowAsync<Dialog>("Comments");
-        
-    }
-   
-    
+    [Inject] private CustomAuthenticationService AuthService { get; set; }
+    [Inject] private NavigationManager Navigation { get; set; }
+
+    private bool _isDialogOpen = false;
+    private bool _loading = true;
+    private Guid currentArticle;
+    private List<CommentDto> _comments = new();
+    private string _newComment = string.Empty;
+    private bool isAuthenticated = false;
+    private Guid UserId;
+
     protected override async Task OnInitializedAsync()
     {
         Console.WriteLine($"Page is loading... Article ID: {Id}");
@@ -117,8 +235,8 @@
     {
         try
         {
-            article = await Http.GetFromJsonAsync<DataApiResponseDto<ArticleDto>>($"http://localhost:5296/api/Articles/{Id}");
-           
+            article = await Http.GetFromJsonAsync<DataApiResponseDto<ArticleDto>>($"https://localhost:7220/api/Articles/{Id}");
+
         }
         catch (Exception ex)
         {
@@ -126,5 +244,80 @@
         }
     }
 
-  
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isAuthenticated = await AuthService.IsUserAuthenticatedAsync();
+
+            UserId = await AuthService.GetUserId();
+
+            Console.WriteLine(UserId);
+
+
+            StateHasChanged();
+        }
+    }
+
+
+    private async Task LoadComments()
+    {
+        _loading = true;
+        try
+        {
+            _comments = await this.CommentService.GetCommentsDto(currentArticle);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task PostComment()
+    {
+        if (isAuthenticated)
+        {
+            if (!string.IsNullOrWhiteSpace(_newComment))
+            {
+                try
+                {
+                    var newComment = new CreateCommentDto()
+                        {
+                            Content = _newComment,
+                            UserId = UserId,
+                            ArticleId = currentArticle
+                        };
+                    await CommentService.CreateComment(newComment);
+                    _comments.Clear();
+                    _comments = await CommentService.GetCommentsDto(currentArticle);
+                    _newComment = string.Empty;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
+            }
+        }
+        else
+        {
+            Navigation.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
+        }
+    }
+
+    private string GetClassForUser(Guid userId)
+    {
+        return userId == UserId ? "dialog-item user-1" : "dialog-item user-2";
+    }
+
+    public async Task OpenDialog()
+    {
+        currentArticle = Id;
+        await LoadComments();
+
+        _isDialogOpen = true;
+        StateHasChanged();
+    }
+
+    private void CloseDialog() => _isDialogOpen = false;
 }

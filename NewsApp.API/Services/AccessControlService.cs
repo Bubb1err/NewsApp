@@ -57,7 +57,7 @@ public class AccessControlService(
             Audience = configuration.GetValue<string>("JWT:Audience"),
             Subject = new ClaimsIdentity(claims),
     
-            Expires = DateTime.UtcNow.AddHours(1),
+            Expires = DateTime.UtcNow.AddHours(5),
             
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(secret),
                 SecurityAlgorithms.HmacSha256Signature)

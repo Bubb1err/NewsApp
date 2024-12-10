@@ -1,128 +1,135 @@
 @using NewsApp.Shared.Models.Dto.Coment
 @using NewsApp.UI.Service
-@rendermode InteractiveServer
 
-@inject CommentService CommentService
-@inject UserService UserService
-@inject NavigationManager Navigation
-
-@inject CustomAuthenticationService AuthService
-
-
-<MudDialog  Style="width: 60vw; height: 40vw; border-radius: 16px;">
-
-    <DialogContent>
+<div class="custom-dialog" style="@(_isDialogOpen ? "display: flex;" : "display: none;")">
+    <div class="custom-dialog-content">
+        <span class="close-btn" @onclick="CloseDialog">×</span>
         @if (_loading)
         {
-            <MudProgressCircular Indeterminate="true" Style="margin: auto; display: block;"/>
+            <div class="loader">Loading...</div>
         }
         else
         {
-            <MudList T="CommentDto">
+            <div class="comments-list">
                 @foreach (var comment in _comments)
                 {
-                    <MudListItem Class="@GetClassForUser(comment.UserId)">
-                        <MudText >
-                            @comment.UserName
-                        </MudText>
-                        <MudText >
-                            @comment.Content
-                        </MudText>
-
-                    </MudListItem>
+                    <div class="comment-item @GetClassForUser(comment.UserId)">
+                        <p class="comment-username">@comment.UserName</p>
+                        <p class="comment-text">@comment.Content</p>
+                    </div>
                 }
-            </MudList>
-        }
-
-        <div style="position: absolute; bottom: 16px; width: 95%; padding: 0 16px;">
-            <!-- Input Field -->
-            <div style="position: relative; width: 100%; border-radius: 50px; overflow: hidden; border: 1px solid #ccc;">
-                <MudTextField
-                    @bind-Value="_newComment"
-                    Placeholder="Write a comment..."
-                    FullWidth="true"
-                    Variant="Variant.Outlined"
-                     />
-
-                <!-- Floating Button -->
-                
-@*                  <MudFab
-                     style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); height: 32px; width: 32px; border: none; background-color: #007BFF; color: white; border-radius: 50%; cursor: pointer;"
-                     Color="Color.Primary"
-                     OnClick="PostComment"
-                     StartIcon="@Icons.Material.Filled.Send" /> *@
             </div>
-
-
-            <button @onclick="() => PostComment()">Send</button>
-        </div>
-        
-    </DialogContent>
-
-</MudDialog>
+            <div class="comment-input-section">
+                <input type="text" placeholder="Write a comment..." @bind="_newComment" class="comment-input" />
+                <button @onclick="PostComment" class="send-button">Send</button>
+            </div>
+        }
+    </div>
+</div>
 
 <style>
-    .dialog-item {
-        background-color: #e8f5e9; 
-        border-radius: 12px;      
-        margin: 8px 0;            
-        padding: 16px;            
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); 
+    .custom-dialog {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
     }
 
-    .dialog-item:hover { 
-        cursor: pointer;          
+    .custom-dialog-content {
+        background: #fff;
+        border-radius: 8px;
+        width: 60%;
+        max-height: 80%;
+        overflow-y: auto;
+        padding: 16px;
+        position: relative;
     }
 
-    .dialog-item.user-1 {
-        background-color: #3F5ACE; 
+    .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 24px;
+        cursor: pointer;
     }
 
-    .dialog-item.user-2 {
-        background-color: #53CE3F; 
+    .loader {
+        margin: auto;
+        text-align: center;
     }
-    
-    
-    
 
+    .comments-list {
+        margin: 16px 0;
+    }
+
+    .comment-item {
+        margin: 8px 0;
+        padding: 8px;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+    }
+
+        .comment-item.user-1 {
+            background-color: #d3eafd;
+        }
+
+        .comment-item.user-2 {
+            background-color: #f3e9d7;
+        }
+
+    .comment-username {
+        font-weight: bold;
+    }
+
+    .comment-text {
+        margin-top: 4px;
+    }
+
+    .comment-input-section {
+        display: flex;
+        gap: 8px;
+        margin-top: 16px;
+    }
+
+    .comment-input {
+        flex: 1;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .send-button {
+        padding: 8px 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+        .send-button:hover {
+            background-color: #0056b3;
+        }
 </style>
 
 @code {
-
+    private bool _isDialogOpen = false;
     private bool _loading = true;
     private Guid currentArticle;
     private List<CommentDto> _comments = new();
     private string _newComment = string.Empty;
     private bool isAuthenticated = false;
-
     private Guid UserId;
 
-
-    [CascadingParameter] private MudDialogInstance MudDialog { get; set; }
-
-    [Inject] private HttpClient HttpClient { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-        currentArticle = CommentService._currentarticleId;
-        await LoadComments();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            isAuthenticated = await AuthService.IsUserAuthenticatedAsync();
-
-            UserId = await AuthService.GetUserId();
-
-            Console.WriteLine(UserId);
-
-
-            StateHasChanged();
-        }
-    }
-
+    [Inject] private CommentService CommentService { get; set; }
+    [Inject] private CustomAuthenticationService AuthService { get; set; }
+    [Inject] private NavigationManager Navigation { get; set; }
 
 
     private async Task LoadComments()
@@ -130,11 +137,7 @@
         _loading = true;
         try
         {
-            _comments = await CommentService.GetCommentsDto(currentArticle);
-        }
-        catch (Exception ex)
-        {
-            // Handle errors (e.g., log them)
+            _comments = await this.CommentService.GetCommentsDto(currentArticle);
         }
         finally
         {
@@ -144,21 +147,18 @@
 
     private async Task PostComment()
     {
-        Console.WriteLine("1");
         if (isAuthenticated)
         {
-            Console.WriteLine("2");
             if (!string.IsNullOrWhiteSpace(_newComment))
             {
                 try
                 {
-                    Console.WriteLine("3");
                     var newComment = new CreateCommentDto()
-                    {
-                        Content = _newComment,
-                        UserId = UserId,
-                        ArticleId = currentArticle
-                    };
+                        {
+                            Content = _newComment,
+                            UserId = UserId,
+                            ArticleId = currentArticle
+                        };
                     await CommentService.CreateComment(newComment);
                     _comments.Clear();
                     _comments = await CommentService.GetCommentsDto(currentArticle);
@@ -178,20 +178,19 @@
 
     private string GetClassForUser(Guid userId)
     {
-        
-        if (userId == UserId)
-        {
-            return "dialog-item user-1";
-        }
-        return "dialog-item user-2";
-
+        return userId == UserId ? "dialog-item user-1" : "dialog-item user-2";
     }
-        
-        
-    
-    
 
-    private void Ok() => MudDialog.Close(DialogResult.Ok(true));
+    public async Task OpenDialog()
+    {
+                isAuthenticated = await AuthService.IsUserAuthenticatedAsync();
+                UserId = await AuthService.GetUserId();
+                StateHasChanged();
+        currentArticle = CommentService._currentarticleId;
+        await LoadComments();
 
+        _isDialogOpen = true;
+    }
 
+    private void CloseDialog() => _isDialogOpen = false;
 }
