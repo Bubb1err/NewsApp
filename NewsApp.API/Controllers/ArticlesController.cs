@@ -33,5 +33,8 @@ namespace NewsApp.API.Controllers
 
             return Ok(await _mediator.Send(getArticleByIdQuery));
         }
+
+       
+
     }
 }

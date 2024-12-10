@@ -2,11 +2,13 @@
 
 @inject NavigationManager Navigation
 @inject CustomAuthenticationService AuthService
+@inject UserService UserService
 
 @page "/news"
  
 @using NewsApp.Shared.Models.Base
 @using NewsApp.Shared.Models.Dto
+@using NewsApp.Shared.Models.Dto.User
 @using NewsApp.UI.Service
 @inject HttpClient Http
 
@@ -27,6 +29,11 @@
         {
             if (article.Title.Length > 0 && article.Content.Length > 0)
             {
+                var isLiked = false;
+            
+                var isSaved = false;
+
+                
                 <div class="article-list-block" @onclick="() => NavigateToArticleDetail(article.Id)">
                     @if (article.SourceUrl != null)
                     {
@@ -41,9 +48,16 @@
                     <p class="articles-list-content">@article.Content.Substring(0, Math.Min(200, article.Content.Length))...</p>
                     <div class="articles-list-controls">
                         <div>
-                            <MudIconButton Icon="@Icons.Material.Filled.Favorite" Color="@(IsLiked ? Color.Primary : Color.Dark)" aria-label="Like" OnClick="ToggleLike" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Bookmark" Color="@(IsSaved ? Color.Primary : Color.Dark)" aria-label="Like" OnClick="ToggleSave" />
-                        </div>
+                            
+                            
+                            <MudIconButton Icon="@Icons.Material.Filled.Favorite" 
+                                           Color="@(Likes.Contains(article.Id) ? Color.Primary : Color.Dark)" aria-label="Like"
+                                           OnClick="() => ToggleLike(article.Id)"/>
+                            <MudIconButton Icon="@Icons.Material.Filled.Bookmark" 
+                                           Color="@(Bookmarks.Contains(article.Id) ? Color.Primary : Color.Dark)" aria-label="Like"
+                                           OnClick="() => ToggleSave(article.Id)"/>
+                       
+                            </div>
                         <p>@article.PublishDate.ToShortDateString()</p>
                     </div>
                 </div>
@@ -55,9 +69,10 @@
 @code {
     private DataCollectionApiResponseDto<ArticleDto>? articles;
     private bool isAuthenticated= false;
-    private bool IsLiked = false;
     
-    private bool IsSaved = false;
+    private List<Guid> Likes = [];
+    private List<Guid> Bookmarks = [];
+
 
     
     
@@ -70,11 +85,24 @@
             try
             {
                 articles = await Http.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("http://localhost:5296/api/Articles");
+                try
+                {
+                    
+                    Likes = await UserService.GetUserLikes();
+                    Bookmarks = await UserService.GetUserBookmarks();
+
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching articles: {ex.Message}");
                 articles = new DataCollectionApiResponseDto<ArticleDto>();
+                
+
             }
 
             StateHasChanged();
@@ -82,12 +110,31 @@
     }
     
 
-    private void ToggleLike()
+    private async Task ToggleLike(Guid id)
     {
         
         if (isAuthenticated)
         {
-            IsLiked = !IsLiked;
+                var dto = new UpdateDto();
+                dto.userId = "";
+                dto.Value = !Likes.Contains(id);
+                dto.articleId = id;
+                
+                
+                
+                await UserService.UpdateLikes(dto);
+                
+                if (!Likes.Contains(id))
+                {
+                    Likes.Add(id);
+                }
+                else
+                {
+                    Likes.Remove(id);
+                }
+                StateHasChanged();
+
+
 
         }
         else
@@ -98,11 +145,28 @@
 
     }
     
-    private void ToggleSave()
+    private async Task ToggleSave(Guid id)
     {
         if (isAuthenticated)
         {
-            IsSaved = !IsSaved;
+            var dto = new UpdateDto();
+            dto.userId = "";
+            dto.Value = !Bookmarks.Contains(id);
+            dto.articleId = id;
+            
+            await UserService.UpdateBookmarks(dto);
+             
+            if (Bookmarks.Contains(id))
+            {
+                Bookmarks.Add(id);
+            }
+            else
+            {
+                Bookmarks.Remove(id);
+            }
+            
+
+            StateHasChanged();
 
         }
         else

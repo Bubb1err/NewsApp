@@ -20,6 +20,8 @@ namespace NewsApp.API.Data.EntityTypeConfigurations
 
             builder.HasIndex(x => x.SourceUrl).IsUnique();
             
+            builder.Property(x=>x.LikeCount);
+            
             builder.HasMany(a => a.Comments)
                 .WithOne(c => c.Article)
                 .HasForeignKey(c => c.ArticleId)
