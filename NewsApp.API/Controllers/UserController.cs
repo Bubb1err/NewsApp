@@ -56,6 +56,41 @@ public class UserController(IMediator mediator, UserManager<User> userManager) :
         return Ok(await _mediator.Send(getLikesQuery));
     }
     
+    [HttpGet("likes/full")]
+    public async Task<IActionResult> GetAllLikesFull()
+    {
+        if (await GetCurrentUser() is var user && user == null || string.IsNullOrEmpty(user.Id))
+        {
+            return BadRequest("Failed to get current user.");
+        }
+
+        
+        var getLikesQuery = new GetUserLikesQuery
+        {
+            UserId = user.Id
+        };
+
+
+        return Ok(await _mediator.Send(getLikesQuery));
+    }
+    
+    
+    
+    [HttpGet("bookmarks/full")]
+    public async Task<IActionResult> GetAllBookmarksFull()
+    {
+        if (await GetCurrentUser() is var user && user == null || string.IsNullOrEmpty(user.Id))
+        {
+            return BadRequest("Failed to get current user.");
+        }
+        
+        var getBookmarksQuery = new GetUserBookmarksQuery
+        {
+            UserId = user.Id
+        };
+        
+        return Ok(await _mediator.Send(getBookmarksQuery));
+    }
     
     [HttpGet("bookmarks")]
     public async Task<IActionResult> GetAllBookmarks()
@@ -69,8 +104,7 @@ public class UserController(IMediator mediator, UserManager<User> userManager) :
         {
             UserId = user.Id
         };
-
-
+        
         return Ok(await _mediator.Send(getBookmarksQuery));
     }
     

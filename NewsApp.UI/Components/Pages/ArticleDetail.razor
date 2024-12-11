@@ -43,7 +43,7 @@
 
 <div class="custom-dialog" style="@(_isDialogOpen ? "display: flex;" : "display: none;")">
     <div class="custom-dialog-content">
-        <span class="close-btn" @onclick="CloseDialog">×</span>
+        <span class="close-btn" @onclick="CloseDialog">ï¿½</span>
         @if (_loading)
         {
             <div class="loader">Loading...</div>
@@ -235,7 +235,7 @@
     {
         try
         {
-            article = await Http.GetFromJsonAsync<DataApiResponseDto<ArticleDto>>($"https://localhost:7220/api/Articles/{Id}");
+            article = await Http.GetFromJsonAsync<DataApiResponseDto<ArticleDto>>($"Articles/{Id}");
 
         }
         catch (Exception ex)

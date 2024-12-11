@@ -118,12 +118,14 @@ app.UseCors(x => x
     //.WithOrigins("https://localhost:44351))
     .SetIsOriginAllowed(origin => true));
 
+app.UseHttpsRedirection();
 
 app.UseRouting();
 app.MapControllers();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
 
 using (var serviceScope = app.Services.CreateScope())
 {
@@ -138,5 +140,6 @@ using (var serviceScope = app.Services.CreateScope())
 app.MapHangfireDashboard();
 
 app.MapRazorPages();
+
 
 app.Run();

@@ -9,158 +9,304 @@
 @inject NavigationManager Navigation
 @inject CustomAuthenticationService AuthenticationService
 
-<MudPaper Class="pa-4 mx-auto mt-6" Elevation="3" MaxWidth="400px">
-    
-    
-    @if (isRegisterForm)
-    {
 
-        <MudText Typo="Typo.h5" Align="Align.Center">Register</MudText>
-        <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
-            <MudTextField T="string" Label="Username" Required="true" RequiredError="User name is required!" @bind-Value="RegisterModel.name"/>
-            <MudTextField T="string" Label="Email" Required="true" RequiredError="Email is required!"
-                          Validation="@(new EmailAddressAttribute() { ErrorMessage = "The email address is invalid" })" @bind-Value="RegisterModel.email"/>
-            <MudTextField T="string" Label="Password" HelperText="Choose a strong password" @ref="pwField1"
-                          InputType="InputType.Password"
-                          Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" Required="true"
-                          RequiredError="Password is required!" @bind-Value="RegisterModel.password"/>
-            <MudTextField T="string"
-                          Label="Password" HelperText="Repeat the password" InputType="InputType.Password"
-                          Validation="@(new Func<string, string>(PasswordMatch))" @bind-Value="RegisterModel.confirmPassword"/>
+@if (_isRegisterForm)
+{
+    <div class="page-content">
+        <div class="form-v9-content">
+            <EditForm class="form-detail" Model="_registerModel" action="#" method="post" OnValidSubmit="@RegisterUser">
+                <AntiforgeryToken/>
+                <DataAnnotationsValidator/>
+                <ValidationSummary/>
 
-            <div class="d-flex align-center justify-space-between">
-                <MudCheckBox T="bool" Required="true" RequiredError="You must agree" Label="I agree!"/>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" OnClick="RegisterUser" Class="ml-auto">Register</MudButton>
-            </div>
-            <div class="d-flex align-center justify-space-between mt-3">
+                <h2>Registration</h2>
+                <div class="form-row-total">
+                    <div class="form-row">
+                        <InputText type="text"
+                                   @bind-Value="_registerModel.name"
+                                   name="full-name"
+                                   id="full-name" class="input-text"
+                                   placeholder="Your Name"
+                                   required/>
+                    </div>
+                    <div class="form-row">
+                        <InputText type="email"
+                                   @bind-Value="_registerModel.email"
+                                   name="your-email" id="your-email"
+                                   class="input-text"
+                                   placeholder="Your Email"/>
+                    </div>
+                </div>
+                <div class="form-row-total">
+                    <div class="form-row">
+                        <InputText type="password"
+                                   @bind-Value="_registerModel.password"
+                                   name="password"
+                                   id="password"
+                                   class="input-text"
+                                   placeholder="Your Password"
+                                   required/>
+                        <ValidationMessage For="@(() => _registerModel.password)"/>
+                    </div>
+                    <div class="form-row">
+                        <InputText type="password"
+                                   @bind-Value="_registerModel.confirmPassword"
+                                   name="comfirm-password"
+                                   id="comfirm-password"
+                                   class="input-text"
+                                   placeholder="Comfirm Password" r
+                                   equired/>
+                        <ValidationMessage For="@(() => _registerModel.confirmPassword)"/>
+
+                    </div>
+                </div>
+                <div class="form-row-last">
+                    <input type="submit" name="register" class="register" value="Register">
+                </div>
+            </EditForm>
+
+
+            <div class="form-row-total">
                 <MudText Typo="Typo.body2">Already have an account?</MudText>
-                <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ToggleForm">
+                <MudButton Class="register" OnClick="ToggleForm">
                     Login
                 </MudButton>
-            </div>
-        </MudForm>
-    }
-    else
-    {
-        <MudText Typo="Typo.h5" Align="Align.Center">Login</MudText>
 
-        <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
-            <MudTextField T="string" Label="Email" Required="true" RequiredError="Email is required!"
-                          Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})" @bind-Value = "loginModel.email"/>
-        
-            <MudTextField T="string" Label="Password"  @ref="pwField1"
-                          InputType="InputType.Password"
-                          Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" Required="true"
-                          RequiredError="Password is required!" @bind-Value = "loginModel.password"/>
-      
-            <div class="d-flex align-center justify-space-between">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" OnClick="LoginUser" Class="ml-auto">Login</MudButton>
+
             </div>
 
-            <div>
-                <MudText Typo="Typo.body2">New user?</MudText>
-                <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ToggleForm">
+        </div>
+    </div>
+}
+else
+{
+    <div class="page-content">
+        <div class="form-v9-content">
+            <EditForm class="form-detail" Model="_loginModel" action="#" method="post" OnValidSubmit="@LoginUser">
+                <AntiforgeryToken/>
+                <DataAnnotationsValidator/>
+                <ValidationSummary/>
+
+                <h2>Login</h2>
+                <div class="form-row-total">
+
+                    <div class="form-row">
+                        <InputText type="email"
+                                   @bind-Value="_loginModel.email"
+                                   name="your-email" id="your-email"
+                                   class="input-text"
+                                   placeholder="Your Email"/>
+                    </div>
+
+                    <div class="form-row">
+                        <InputText type="password"
+                                   @bind-Value="_loginModel.password"
+                                   name="password"
+                                   id="password"
+                                   class="input-text"
+                                   placeholder="Your Password"
+                                   required/>
+                    </div>
+
+                </div>
+                <div class="form-row-last">
+                    <input type="submit" name="Login" class="register" value="Login">
+                </div>
+            </EditForm>
+
+            <div class="spacer"></div>
+
+
+            <div class="form-row-total">
+                <MudText Typo="Typo.body2">New User?</MudText>
+                <MudButton Class="register" OnClick="ToggleForm">
                     Register
                 </MudButton>
             </div>
-    
-        </MudForm>
-    }
-    
-    @if (!string.IsNullOrEmpty(Message))
-    {
-        <MudText Typo="Typo.body1" Class="mt-2" Color="@MessageColor">@Message</MudText>
-    }
-</MudPaper>
+        </div>
+    </div>
+}
 
+@if (!string.IsNullOrEmpty(_message))
+{
+    <MudText Typo="Typo.body1" Class="mt-2" Color="@_messageColor">@_message</MudText>
+}
 
 @code {
-    private bool isRegisterForm;
-    
-    private MudForm form;
-    bool success;
-    string[] errors = { };
-    MudTextField<string> pwField1;
-    private LoginDto loginModel = new();
-    private RegisterDto RegisterModel = new();
-    private string Message;
-    private Color MessageColor;
-    private string returnUrl = "/"; 
-    
+    private bool _isRegisterForm;
+    private readonly LoginDto _loginModel = new();
+    private readonly RegisterDto _registerModel = new();
+    private string? _message;
+    private Color _messageColor;
+
+    private string _returnUrl = "/";
+
     private async Task LoginUser()
     {
-        
-        await AuthenticationService.LoginAsync(loginModel);
-        Navigation.NavigateTo(returnUrl);
-
-     
+        await AuthenticationService.LoginAsync(_loginModel);
+        Navigation.NavigateTo(_returnUrl);
     }
-    
+
     private async Task RegisterUser()
     {
-        if (form.IsValid)
+        var isSuccess = await AuthenticationService.RegisterAsync(_registerModel);
+        if (isSuccess)
         {
+            _loginModel.email = _registerModel.email;
+            _loginModel.password = _registerModel.password;
+            await AuthenticationService.LoginAsync(_loginModel);
 
-            var isSuccess = await AuthenticationService.RegisterAsync(RegisterModel);
-            if (isSuccess)
-            {
-                loginModel.email = RegisterModel.email;
-                loginModel.password = RegisterModel.password;
-                await AuthenticationService.LoginAsync(loginModel);
-
-                Navigation.NavigateTo(returnUrl);
-
-            }
-            else
-            {
-                Message = $"Registration failed";
-                MessageColor = Color.Error;
-            }
+            Navigation.NavigateTo(_returnUrl);
         }
         else
         {
-            Message = "Please fix validation errors.";
-            MessageColor = Color.Warning;
+            _message = $"Registration failed";
+            _messageColor = Color.Error;
         }
-     
     }
-    
-    
-    
+
+
     private void ToggleForm()
     {
-        isRegisterForm = !isRegisterForm;
-
+        _isRegisterForm = !_isRegisterForm;
     }
-
     
-    
-    
-    private IEnumerable<string> PasswordStrength(string pw)
-    {
-        if (string.IsNullOrWhiteSpace(pw))
-        {
-            yield return "Password is required!";
-            yield break;
-        }
-        if (pw.Length < 8)
-            yield return "Password must be at least of length 8";
-        if (!Regex.IsMatch(pw, @"[A-Z]"))
-            yield return "Password must contain at least one capital letter";
-        if (!Regex.IsMatch(pw, @"[a-z]"))
-            yield return "Password must contain at least one lowercase letter";
-        if (!Regex.IsMatch(pw, @"[0-9]"))
-            yield return "Password must contain at least one digit";
-    }
-
-    private string PasswordMatch(string arg)
-    {
-        if (pwField1.Value != arg)
-            return "Passwords don't match";
-        return null;
-    }
-
-
 }
 
+<style>
 
+    .spacer {
+        height: 85px; 
+        width: 100%;  
+    }
+    
+    .page-content {
+        width: 100%;
+        display: flex;
+        display: -webkit-flex;
+        justify-content: center;
+        background-color: #adb5bd;
+        -webkit-justify-content: center;
+        align-items: center;
+        -webkit-align-items: center;
+    }
+    .form-v9-content  {
+        width: 975px;
+        border-radius: 15px;
+     
+        -moz-border-radius: 15px;
+        -webkit-border-radius: 15px;
+        margin: 185px 0;
+        font-family: 'Nunito', sans-serif;
+        color: #fff;
+        font-weight: 700;
+        font-size: 16px;
+        position: relative;
+    }
+    .form-v9-content .form-detail {
+        padding: 30px 135px 30px 100px;
+        position: relative;
+    }
+    .form-v9-content .form-detail h2 {
+        font-size: 35px;
+        text-align: center;
+        position: relative;
+        padding: 16px 0 13px;
+        margin-bottom: 55px;
+    }
+    .form-v9-content .form-detail h2::after {
+        background: #fff;
+        width: 73px;
+        height: 3px;
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        
+        -ms-transform: translateX(-50%);
+      
+    }
+    .form-v9-content .form-row-total {
+        display: flex;
+        display: -webkit-flex;
+        justify-content: space-between;
+      
+        -webkit-justify-content: space-between;
+    }
+    .form-v9-content .form-row {
+        width: 45%;
+    }
+    .form-v9-content .form-detail .form-row-last {
+        text-align: center;
+    }
+    .form-v9-content .form-detail .input-text {
+        margin-bottom: 45px;
+    }
+    .form-v9-content .form-detail input {
+        width: 100%;
+        padding: 14.5px 0px 14.5px 30px;
+        border: 2px solid #ccc;
+        appearance: unset;
+        -moz-appearance: unset;
+        -webkit-appearance: unset;
+      
+        outline: none;
+     
+        border-radius: 27.5px;
+        -o-border-radius: 27.5px;
+        -ms-border-radius: 27.5px;
+        -moz-border-radius: 27.5px;
+        -webkit-border-radius: 27.5px;
+        font-family: 'Nunito', sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        background: rgba(255, 255, 255, 0.2)
+    }
+    .form-v9-content .form-detail input:focus {
+        border: 2px solid #999;
+    }
+    .form-v9-content .form-detail .register {
+        background: #FF8000;
+        border-radius: 25px;
+      
+        -moz-border-radius: 25px;
+        -webkit-border-radius: 25px;
+        width: 180px;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        -o-box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        -moz-box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        -webkit-box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        border: none;
+        margin: 20px 0 73px 35px;
+        cursor: pointer;
+        font-family: 'Nunito', sans-serif;
+        color: #fff;
+        font-weight: 700;
+        font-size: 16px;
+    }
+    .form-v9-content .form-detail .register:hover {
+        background: #FF8000;
+    }
+    .form-v9-content .form-detail .form-row-last input {
+        padding: 14px;
+    }
+    input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+        color: #e5e5e5;
+        font-size: 16px;
+    }
+    input::-moz-placeholder { /* Firefox 19+ */
+        color: #e5e5e5;
+        font-size: 16px;
+    }
+    input:-ms-input-placeholder { /* IE 10+ */
+        color: #e5e5e5;
+        font-size: 16px;
+    }
+    input:-moz-placeholder { /* Firefox 18- */
+        color: #e5e5e5;
+        font-size: 16px;
+    }
+
+    
+</style>

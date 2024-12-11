@@ -33,9 +33,7 @@ public class UpdateLikeCommandHandler : IRequestHandler<UpdateLikeCommand, DataA
             user.RemoveLike(request.ArticleId);
             article.RemoveLike();
         }
-
-        Console.WriteLine(user.Liked.ToString());
-
+        
         _unitOfWork.GetRepository<Data.Entities.User>().Update(user);
         _unitOfWork.GetRepository<Article>().Update(article);
 

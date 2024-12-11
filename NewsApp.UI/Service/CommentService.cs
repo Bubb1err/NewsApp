@@ -23,7 +23,7 @@ public class CommentService
     {
         var comments =
             await _httpClient.GetFromJsonAsync<DataApiResponseDto<List<CommentDto>>>(
-                $"https://localhost:7220/api/Comment/by-article/{articleId}");
+                $"Comment/by-article/{articleId}");
 
         return comments.Item;
     }
@@ -35,7 +35,7 @@ public class CommentService
 
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         Console.WriteLine(_httpClient.DefaultRequestHeaders.Authorization.ToString());
-        var response = await _httpClient.PostAsJsonAsync("https://localhost:7220/api/Comment", comment);
+        var response = await _httpClient.PostAsJsonAsync("Comment", comment);
         Console.WriteLine(response.StatusCode);
         return response.IsSuccessStatusCode;
     }

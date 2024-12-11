@@ -31,9 +31,6 @@
                 {
                     if (article.Title.Length > 0 && article.Content.Length > 0)
                     {
-                        var isLiked = false;
-
-                        var isSaved = false;
 
 
                         <div class="article-list-block" @onclick="() => NavigateToArticleDetail(article.Id)">
@@ -126,8 +123,8 @@
             
             try
             {
-                articles = await Http.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("https://localhost:7220/api/Articles");
-                _topArticles = await Http.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("https://localhost:7220/api/articles/popular");
+                articles = await Http.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("Articles");
+                _topArticles = await Http.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("articles/popular");
                 try
                 {
                     

@@ -32,7 +32,7 @@ public class UserService
             var token = await _tokenProvider.GetTokenAsync();
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             Console.WriteLine(_httpClient.DefaultRequestHeaders.Authorization.ToString());
-            var response = await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<Guid>>("https://localhost:7220/api/User/likes");
+            var response = await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<Guid>>("User/likes");
             return response.Items;
         
         
@@ -42,7 +42,7 @@ public class UserService
     {
         var token = await _tokenProvider.GetTokenAsync();
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        var response = await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<Guid>>("https://localhost:7220/api/User/bookmarks");
+        var response = await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<Guid>>("User/bookmarks");
         return response.Items;
         
     }
@@ -53,7 +53,7 @@ public class UserService
         var token = await _tokenProvider.GetTokenAsync();
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var response = await _httpClient.PutAsJsonAsync("https://localhost:7220/api/User/updateLike",updateDto);
+        var response = await _httpClient.PutAsJsonAsync("http://localhost:5296/api/User/updateLike",updateDto);
         
         return response.IsSuccessStatusCode;
 
@@ -64,7 +64,7 @@ public class UserService
         var token = await _tokenProvider.GetTokenAsync();
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         
-        var response = await _httpClient.PutAsJsonAsync("https://localhost:7220/api/User/updateBookmarks", updateDto);
+        var response = await _httpClient.PutAsJsonAsync("http://localhost:5296/api/User/updateBookmarks",updateDto);
         
         return response.IsSuccessStatusCode;
         

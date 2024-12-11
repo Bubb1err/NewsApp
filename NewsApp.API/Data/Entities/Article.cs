@@ -16,10 +16,18 @@ namespace NewsApp.API.Data.Entities
         
         public int LikeCount { get; set; }
         
+        public int SavedCount { get; set; }
+        
         public void AddLike() => LikeCount++;
         
         public void RemoveLike() => LikeCount--;
         
         
+        
+        public void AddSaved() => SavedCount++;
+        
+        public void RemoveSaved() => SavedCount--;
+
+
     }
 }
