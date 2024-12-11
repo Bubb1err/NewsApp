@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NewsApp.API.Application.Articles;
+using NewsApp.API.Application.Articles.Commands;
 using NewsApp.API.Services;
 
 namespace NewsApp.API.Controllers
@@ -38,6 +39,15 @@ namespace NewsApp.API.Controllers
         public async Task<IActionResult> GetTopNews()
         {
             return Ok(await _mediator.Send(new GetPopularArticlesRequest()));
+        }
+        
+        [HttpPost]
+        [Authorize] 
+        public async Task<IActionResult> CreateArticle([FromBody] CreateArticleCommand command)
+        {
+            
+            var result = await _mediator.Send(command);
+            return Ok(result);
         }
 
     }

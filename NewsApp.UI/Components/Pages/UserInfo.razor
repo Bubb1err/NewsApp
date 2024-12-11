@@ -24,17 +24,23 @@
             <div class="action-buttons">
                 <button class="action-button" @onclick="getLiked">
                     <i class="oi oi-heart"></i>
-                    <span>Понравившиеся</span>
+                    <span>Liked</span>
                 </button>
                 <button class="action-button" @onclick="getSaved">
                     <i class="oi oi-bookmark"></i>
-                    <span>Сохраненные</span>
+                    <span>Saved</span>
+                </button>
+
+                <button class="action-button" @onclick="CreateArticle">
+                    <i class="oi oi-plus"></i>
+                    <span>Create Article</span>
                 </button>
             </div>
             
+            
             <button class="logout-button" @onclick="Logout">
                 <i class="oi oi-account-logout"></i>
-                <span>Выйти</span>
+                <span>Logout</span>
             </button>
         </div>
     </div>
@@ -88,6 +94,11 @@ else
     {
         await AuthService.LogoutAsync();
         isAuthenticated = false;
+    }
+    
+    private void CreateArticle()
+    {
+        Navigation.NavigateTo("/create-article");
     }
 
 

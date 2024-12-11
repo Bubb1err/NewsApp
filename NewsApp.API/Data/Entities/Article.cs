@@ -9,6 +9,8 @@ namespace NewsApp.API.Data.Entities
         public string Content { get; set; }
 
         public string SourceUrl { get; set; }
+        
+        public string Author { get; set; }
 
         public DateTime PublishDate { get; set; }
         

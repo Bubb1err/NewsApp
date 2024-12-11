@@ -16,6 +16,9 @@ namespace NewsApp.API.Data.EntityTypeConfigurations
 
             builder.Property(x => x.PublishDate).IsRequired();
 
+            
+            builder.Property(x => x.Author);
+            
             builder.Property(x => x.SourceUrl).IsRequired();
 
             builder.HasIndex(x => x.SourceUrl).IsUnique();

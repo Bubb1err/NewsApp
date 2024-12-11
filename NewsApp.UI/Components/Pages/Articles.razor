@@ -34,10 +34,11 @@
 
 
                         <div class="article-list-block" @onclick="() => NavigateToArticleDetail(article.Id)">
-                            @if (article.SourceUrl != null)
+                            @if (article.Author != null)
                             {
-                                <a class="article-source" href="@article.SourceUrl">BBCNews</a>
+                                <a class="article-source" >@article.Author</a>
                             }
+                            
                             else
                             {
                                 <p class="article-source">Original</p>

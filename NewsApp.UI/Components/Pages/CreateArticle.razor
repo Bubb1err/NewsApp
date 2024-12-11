@@ -1,0 +1,195 @@
+@page "/create-article"
+@using NewsApp.Shared.Models.Dto
+@using NewsApp.UI.Service
+@inject NavigationManager Navigation
+@inject AricleService ArticleService
+@inject CustomAuthenticationService AuthService
+@inject UserService UserService
+@rendermode InteractiveServer
+
+<div class="create-article-container">
+    <div class="header">
+        <h2>Create New Article</h2>
+        <button class="back-button" @onclick="GoBack">
+            <i class="oi oi-arrow-left"></i>
+            Back
+        </button>
+    </div>
+
+    <EditForm Model="@article" OnValidSubmit="CreateArticleAsync">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-container">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <InputText id="title" 
+                          class="form-control" 
+                          @bind-Value="article.Title" 
+                          placeholder="Enter article title"/>
+                <ValidationMessage For="@(() => article.Title)" />
+            </div>
+
+            <div class="form-group">
+                <label for="content">Content</label>
+                <InputTextArea id="content" 
+                             class="form-control" 
+                             @bind-Value="article.Content" 
+                             rows="10" 
+                             placeholder="Write your article content here"/>
+                <ValidationMessage For="@(() => article.Content)" />
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="submit-button">
+                    <i class="oi oi-check"></i>
+                    Publish Article
+                </button>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private ArticleDto   article = new();
+    private bool isAuthenticated;
+    
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isAuthenticated = await AuthService.IsUserAuthenticatedAsync();
+            if (!isAuthenticated)
+            {
+                Navigation.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
+                return;
+            }
+
+            var user = await UserService.GetUserInfo();
+            article.Author = user.Name;
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task CreateArticleAsync()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(article.Title) || string.IsNullOrWhiteSpace(article.Content))
+            {
+                return;
+            }
+
+            var success = await ArticleService.CreateArticleAsync(article);
+            if (success)
+            {
+                Navigation.NavigateTo("/news");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating article: {ex.Message}");
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/userinfo");
+    }
+}
+
+<style>
+    .create-article-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .back-button {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 6px;
+        background: #f5f5f5;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .back-button:hover {
+        background: #FF8000;
+        color: white;
+    }
+
+    .form-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-group label {
+        font-weight: 500;
+        color: #333;
+    }
+
+    .form-control {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 1rem;
+        width: 100%;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #FF8000;
+    }
+
+    .button-group {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 1rem;
+    }
+
+    .submit-button {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        background: #FF8000;
+        color: white;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .submit-button:hover {
+        background: #e67300;
+    }
+
+    .validation-message {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+</style> 
