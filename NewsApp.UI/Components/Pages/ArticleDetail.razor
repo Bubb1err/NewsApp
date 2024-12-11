@@ -8,6 +8,7 @@
 @rendermode InteractiveServer
 @inject IDialogService DialogService
 @inject CommentService CommentService
+@inject  AricleService AricleService
 
 <MudContainer MaxWidth="MaxWidth.Medium">
 
@@ -19,22 +20,22 @@
     else
     {
         <div class="article-block">
-            @if (article.Item.SourceUrl != null)
+            @if (article.SourceUrl != null)
             {
-                <a class="article-source" href="@article.Item.SourceUrl">BBCNews</a>
+                <a class="article-source" href="@article.SourceUrl">BBCNews</a>
             }
             else
             {
                 <p class="article-source">Original</p>
 
             }
-            <h1 class="article-header">@article.Item.Title</h1>
-            <p class="article-content">@article.Item.Content</p>
+            <h1 class="article-header">@article.Title</h1>
+            <p class="article-content">@article.Content</p>
             <div class="article-controls">
                 <div>
                     <button @onclick="() => OpenDialog()" class="send-button"><i class="bi bi-chat-fill"></i></button>
                 </div>
-                <p>@article.Item.PublishDate.ToShortDateString()</p>
+                <p>@article.PublishDate.ToShortDateString()</p>
             </div>
         </div>
     }
@@ -189,8 +190,7 @@
 @code {
 
     [Parameter] public Guid Id { get; set; }
-    private DataApiResponseDto< ArticleDto?> article;
-    private string newComment = string.Empty;
+    private ArticleDto? article;
     private Dialog dialogInstance;
 
     private bool isCommentDialogOpen = false;
@@ -211,31 +211,12 @@
         Console.WriteLine($"Page is loading... Article ID: {Id}");
         await FetchArticleDetails();
     }
-    private void OpenCommentDialog()
-    {
-        isCommentDialogOpen = true;
-    }
-    private void CloseCommentDialog()
-    {
-        isCommentDialogOpen = false;
-    }
-    private void AddComment()
-    {
-        if (!string.IsNullOrEmpty(newComment))
-        {
-            article.Item.Comments.Add(new CommentDto
-            {
-                Content = newComment
-            });
-            newComment = string.Empty; 
-        }
-    }
 
     private async Task FetchArticleDetails()
     {
         try
         {
-            article = await Http.GetFromJsonAsync<DataApiResponseDto<ArticleDto>>($"Articles/{Id}");
+            article = await AricleService.GetAArticleByIdAsync(Id);
 
         }
         catch (Exception ex)

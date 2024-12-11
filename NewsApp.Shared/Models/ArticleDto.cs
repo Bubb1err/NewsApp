@@ -15,5 +15,11 @@ namespace NewsApp.Shared.Models
         public List<CommentDto> Comments { get; set; }
         
         public int LikeCount { get; set; }
+        
+        public int SavedCount { get; set; }
+
+        
     }
+    
+    
 }

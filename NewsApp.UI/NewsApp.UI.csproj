@@ -80,4 +80,8 @@
     <PackageReference Include="MudBlazor" Version="7.15.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="AntDesign" Version="1.0.0" />
+  </ItemGroup>
+
 </Project>

@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Blazored.LocalStorage;
 using MudBlazor;
 using NewsApp.Shared.Models.Base;
+using NewsApp.Shared.Models.Dto;
 using NewsApp.Shared.Models.Dto.User;
 
 namespace NewsApp.UI.Service;
@@ -31,7 +32,6 @@ public class UserService
     {
             var token = await _tokenProvider.GetTokenAsync();
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            Console.WriteLine(_httpClient.DefaultRequestHeaders.Authorization.ToString());
             var response = await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<Guid>>("User/likes");
             return response.Items;
         
@@ -46,6 +46,29 @@ public class UserService
         return response.Items;
         
     }
+    
+    
+    
+    public async Task<List<ArticleDto>> GetUserFullLikes()
+    {
+        var token = await _tokenProvider.GetTokenAsync();
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("User/likes/full");
+        return response.Items;
+        
+        
+    }
+    
+    public async Task<List<ArticleDto>> GetUserFullBookmarks()
+    {
+        var token = await _tokenProvider.GetTokenAsync();
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("User/bookmarks/full");
+        return response.Items ;
+        
+    }
+    
+    
 
 
     public async Task<bool> UpdateLikes(UpdateDto updateDto)
@@ -53,7 +76,7 @@ public class UserService
         var token = await _tokenProvider.GetTokenAsync();
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var response = await _httpClient.PutAsJsonAsync("http://localhost:5296/api/User/updateLike",updateDto);
+        var response = await _httpClient.PutAsJsonAsync("User/updateLike",updateDto);
         
         return response.IsSuccessStatusCode;
 
@@ -64,9 +87,19 @@ public class UserService
         var token = await _tokenProvider.GetTokenAsync();
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         
-        var response = await _httpClient.PutAsJsonAsync("http://localhost:5296/api/User/updateBookmarks",updateDto);
+        var response = await _httpClient.PutAsJsonAsync("User/updateBookmarks",updateDto);
         
         return response.IsSuccessStatusCode;
+        
+    }
+    
+    
+    public async Task<UserDto> GetUserInfo()
+    {
+        var token = await _tokenProvider.GetTokenAsync();
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await _httpClient.GetFromJsonAsync<DataApiResponseDto<UserDto>>("User/info");
+        return response.Item;
         
     }
 

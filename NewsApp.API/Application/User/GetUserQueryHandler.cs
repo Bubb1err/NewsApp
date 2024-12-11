@@ -1,33 +1,37 @@
-using AutoMapper;
+﻿using AutoMapper;
 using MediatR;
-using NewsApp.API.Application.Articles;
 using NewsApp.API.Application.User.Query;
 using NewsApp.API.Data.Repository.Base;
 using NewsApp.Shared.Models.Base;
+using NewsApp.Shared.Models.Dto.User;
 
 namespace NewsApp.API.Application.User;
 
 
-internal sealed class GetUserBookmarksQueryHandler : IRequestHandler<GetUserBookmarksQuery, DataCollectionApiResponseDto<Guid>>
+
+internal sealed class GetUserQueryHandler : IRequestHandler<GetUserQuery, DataApiResponseDto<UserDto>>
 {
     private readonly UnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public GetUserBookmarksQueryHandler(UnitOfWork unitOfWork, IMapper mapper)
+    public GetUserQueryHandler(UnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
 
-  
-    public async Task<DataCollectionApiResponseDto<Guid>> Handle(GetUserBookmarksQuery request, CancellationToken cancellationToken)
+    public async Task<DataApiResponseDto<UserDto>> Handle(GetUserQuery request, CancellationToken cancellationToken)
     {
+
         var user = await _unitOfWork.GetRepository<Data.Entities.User>()
             .GetFirstOrDefaultAsync(e => e.Id == request.UserId);
         
-        return new DataCollectionApiResponseDto<Guid>
+        
+        var userDto = _mapper.Map<UserDto>(user);
+
+        return new DataApiResponseDto<UserDto>
         {
-            Items = user.Saved
+            Item = userDto,
         };
     }
 }

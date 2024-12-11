@@ -1,9 +1,11 @@
-using MediatR;
+﻿using MediatR;
 using NewsApp.Shared.Models.Base;
+using NewsApp.Shared.Models.Dto.User;
 
 namespace NewsApp.API.Application.User.Query;
 
-public class GetUserBookmarksQuery : IRequest<DataCollectionApiResponseDto<Guid>>
+public class GetUserQuery :IRequest<DataApiResponseDto<UserDto>>
 {
     public string UserId { get; set; }
+
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NewsApp.API.Application.Articles;
 using NewsApp.API.Application.User;
+using NewsApp.API.Application.User.Query;
 using NewsApp.API.Data.Entities;
 
 namespace NewsApp.API.Controllers;
@@ -65,7 +66,7 @@ public class UserController(IMediator mediator, UserManager<User> userManager) :
         }
 
         
-        var getLikesQuery = new GetUserLikesQuery
+        var getLikesQuery = new GetFullLikesQuery
         {
             UserId = user.Id
         };
@@ -84,7 +85,7 @@ public class UserController(IMediator mediator, UserManager<User> userManager) :
             return BadRequest("Failed to get current user.");
         }
         
-        var getBookmarksQuery = new GetUserBookmarksQuery
+        var getBookmarksQuery = new GetFullBookmarksQuery
         {
             UserId = user.Id
         };
@@ -107,5 +108,21 @@ public class UserController(IMediator mediator, UserManager<User> userManager) :
         
         return Ok(await _mediator.Send(getBookmarksQuery));
     }
+    
+    [HttpGet("info")]
+    public async Task<IActionResult> GetUser()
+    {
+        if (await GetCurrentUser() is var user && user == null || string.IsNullOrEmpty(user.Id))
+        {
+            return BadRequest("Failed to get current user.");
+        }
+        var getUserQuery = new GetUserQuery
+        {
+            UserId = user.Id
+        };
+        
+        return Ok(await _mediator.Send(getUserQuery));
+    }
+
     
 }

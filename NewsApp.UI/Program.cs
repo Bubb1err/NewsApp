@@ -8,6 +8,8 @@ using NewsApp.UI.Service;
 var builder = WebApplication.CreateBuilder(args);
 
 
+builder.Services.AddAntDesign();
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -21,12 +23,15 @@ builder.Services.AddScoped<CommentService>();
 
 builder.Services.AddScoped<UserService>();
 
+builder.Services.AddScoped<AricleService>();
+
+
 builder.Services.AddScoped<ITokenProvider, TokenProvider>();
 builder.Services.AddTransient<AuthorizationMessageHandler>();
 
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri("http://localhost:5296/api/")
+    BaseAddress = new Uri("https://localhost:7220/api/")
 });
 
 /*

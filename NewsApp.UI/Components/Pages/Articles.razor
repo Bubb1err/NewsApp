@@ -3,6 +3,7 @@
 @inject NavigationManager Navigation
 @inject CustomAuthenticationService AuthService
 @inject UserService UserService
+@inject AricleService AricleService
 
 @page "/news"
  
@@ -10,7 +11,6 @@
 @using NewsApp.Shared.Models.Dto
 @using NewsApp.Shared.Models.Dto.User
 @using NewsApp.UI.Service
-@inject HttpClient Http
 
 <MudContainer MaxWidth="MaxWidth.Large" Style="margin-top: 5em;">
 
@@ -46,16 +46,19 @@
                             <h2 class="articles-list-title">@article.Title</h2>
                             <p class="articles-list-content">@article.Content.Substring(0, Math.Min(200, article.Content.Length))...</p>
                             <div class="articles-list-controls">
-                                <div>
-
-
+                                <div style="display: flex ;gap: 10px;">
+                                    
                                     <MudIconButton Icon="@Icons.Material.Filled.Favorite"
                                                    Color="@(Likes.Contains(article.Id) ? Color.Primary : Color.Dark)" aria-label="Like"
-                                                   OnClick="() => ToggleLike(article.Id)" />
+                                                   OnClick="() => ToggleLike(article)" />
+                                    <MudText>@article.LikeCount </MudText>
+
+                                                            
                                     <MudIconButton Icon="@Icons.Material.Filled.Bookmark"
                                                    Color="@(Bookmarks.Contains(article.Id) ? Color.Primary : Color.Dark)" aria-label="Saved"
-                                                   OnClick="() => ToggleSave(article.Id)" />
-
+                                                   OnClick="() => ToggleSave(article)" />
+                                    <MudText Style="" >@article.SavedCount</MudText>
+                                    
                                 </div>
                                 <p>@article.PublishDate.ToShortDateString()</p>
                             </div>
@@ -91,10 +94,10 @@
 
                                     <MudIconButton Icon="@Icons.Material.Filled.Favorite"
                                                    Color="@(Likes.Contains(article.Id) ? Color.Primary : Color.Dark)" aria-label="Like"
-                                                   OnClick="() => ToggleLike(article.Id)" />
+                                                   OnClick="() => ToggleLike(article)" />
                                     <MudIconButton Icon="@Icons.Material.Filled.Bookmark"
                                                    Color="@(Bookmarks.Contains(article.Id) ? Color.Primary : Color.Dark)" aria-label="Saved"
-                                                   OnClick="() => ToggleSave(article.Id)" />
+                                                   OnClick="() => ToggleSave(article)" />
 
                                 </div>
                                 <p>@article.PublishDate.ToShortDateString()</p>
@@ -123,8 +126,11 @@
             
             try
             {
-                articles = await Http.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("Articles");
-                _topArticles = await Http.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("articles/popular");
+
+                articles = await AricleService.GetAllArticlesAsync();
+                _topArticles = await AricleService.GetPopularArticlesAsync();
+                
+                
                 try
                 {
                     
@@ -134,6 +140,7 @@
                 }
                 catch (Exception e)
                 {
+                    Console.WriteLine("LIKES ANA BOOKMARKS ERROR");
                     Console.WriteLine(e);
                 }
             }
@@ -150,27 +157,29 @@
     }
     
 
-    private async Task ToggleLike(Guid id)
+    private async Task ToggleLike(ArticleDto articleDto)
     {
         
         if (isAuthenticated)
         {
                 var dto = new UpdateDto();
                 dto.userId = "";
-                dto.Value = !Likes.Contains(id);
-                dto.articleId = id;
+                dto.Value = !Likes.Contains(articleDto.Id);
+                dto.articleId = articleDto.Id;
                 
                 
                 
                 await UserService.UpdateLikes(dto);
                 
-                if (!Likes.Contains(id))
+                if (!Likes.Contains(articleDto.Id))
                 {
-                    Likes.Add(id);
+                    articleDto.LikeCount++;
+                    Likes.Add(articleDto.Id);
                 }
                 else
                 {
-                    Likes.Remove(id);
+                    articleDto.LikeCount--;
+                    Likes.Remove(articleDto.Id);
                 }
                 StateHasChanged();
 
@@ -185,24 +194,26 @@
 
     }
     
-    private async Task ToggleSave(Guid id)
+    private async Task ToggleSave(ArticleDto articleDto)
     {
         if (isAuthenticated)
         {
             var dto = new UpdateDto();
             dto.userId = "";
-            dto.Value = !Bookmarks.Contains(id);
-            dto.articleId = id;
+            dto.Value = !Bookmarks.Contains(articleDto.Id);
+            dto.articleId = articleDto.Id;
             
             await UserService.UpdateBookmarks(dto);
              
-            if (!Bookmarks.Contains(id))
+            if (!Bookmarks.Contains(articleDto.Id))
             {
-                Bookmarks.Add(id);
+                articleDto.SavedCount++;
+                Bookmarks.Add(articleDto.Id);
             }
             else
             {
-                Bookmarks.Remove(id);
+                articleDto.SavedCount--;
+                Bookmarks.Remove(articleDto.Id);
             }
             
 
@@ -220,4 +231,5 @@
         Navigation.NavigateTo($"/article/{articleId}");
     }
 
+}
 }
