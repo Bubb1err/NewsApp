@@ -94,6 +94,7 @@ else
     {
         await AuthService.LogoutAsync();
         isAuthenticated = false;
+        Navigation.NavigateTo($"/auth");
     }
     
     private void CreateArticle()
