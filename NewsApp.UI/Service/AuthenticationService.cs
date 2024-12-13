@@ -4,6 +4,7 @@ using NewsApp.Shared.Models.Dto.User;
 
 namespace NewsApp.UI.Service;
 
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -60,11 +61,20 @@ public class CustomAuthenticationService
     public async Task<bool> IsUserAuthenticatedAsync()
     {
         var token = await _localStorage.GetItemAsync<string>("authToken");
-        return !string.IsNullOrEmpty(token);
+        if (string.IsNullOrEmpty(token))
+            return false;
+
+        var handler = new JwtSecurityTokenHandler();
+        if (!handler.CanReadToken(token))
+            return false;
+
+        var jwtToken = handler.ReadJwtToken(token);
+
+        if (jwtToken.ValidTo <= DateTime.UtcNow)
+            return false;
+
+        return true;
     }
-
-  
-
 }
 
 

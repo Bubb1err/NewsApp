@@ -20,13 +20,13 @@
     else
     {
         <div class="article-block">
-            @if (article.SourceUrl != null)
+            @if (article.Author != null && !string.IsNullOrWhiteSpace(article.Author))
             {
-                <a class="article-source" href="@article.SourceUrl">BBCNews</a>
+                <p class="article-source">@article.Author</p>
             }
             else
             {
-                <p class="article-source">Original</p>
+                <a href="@article.SourceUrl" class="article-source">BBC News</a>
 
             }
             <h1 class="article-header">@article.Title</h1>
@@ -44,7 +44,7 @@
 
 <div class="custom-dialog" style="@(_isDialogOpen ? "display: flex;" : "display: none;")">
     <div class="custom-dialog-content">
-        <span class="close-btn" @onclick="CloseDialog">�</span>
+        <span class="close-btn" @onclick="CloseDialog"><i class="bi bi-x-lg"></i></span>
         @if (_loading)
         {
             <div class="loader">Loading...</div>

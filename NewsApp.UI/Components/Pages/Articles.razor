@@ -34,14 +34,13 @@
 
 
                         <div class="article-list-block" @onclick="() => NavigateToArticleDetail(article.Id)">
-                            @if (article.Author != null)
+                            @if (article.Author != null && !string.IsNullOrWhiteSpace(article.Author))
                             {
-                                <a class="article-source" >@article.Author</a>
+                                <p class="article-source" >@article.Author</p>
                             }
-                            
                             else
                             {
-                                <p class="article-source">Original</p>
+                                <a href="@article.SourceUrl" class="article-source">BBC News</a>
 
                             }
                             <h2 class="articles-list-title">@article.Title</h2>
@@ -52,13 +51,13 @@
                                     <MudIconButton Icon="@Icons.Material.Filled.Favorite"
                                                    Color="@(Likes.Contains(article.Id) ? Color.Primary : Color.Dark)" aria-label="Like"
                                                    OnClick="() => ToggleLike(article)" />
-                                    <MudText>@article.LikeCount </MudText>
+                                    <MudText Style="align-content: center;">@article.LikeCount </MudText>
 
                                                             
                                     <MudIconButton Icon="@Icons.Material.Filled.Bookmark"
                                                    Color="@(Bookmarks.Contains(article.Id) ? Color.Primary : Color.Dark)" aria-label="Saved"
                                                    OnClick="() => ToggleSave(article)" />
-                                    <MudText Style="" >@article.SavedCount</MudText>
+                                    <MudText Style="align-content: center;">@article.SavedCount</MudText>
                                     
                                 </div>
                                 <p>@article.PublishDate.ToShortDateString()</p>
@@ -78,27 +77,29 @@
 
 
                         <div class="article-list-block" @onclick="() => NavigateToArticleDetail(article.Id)">
-                            @if (article.SourceUrl != null)
+                            @if (article.Author != null && !string.IsNullOrWhiteSpace(article.Author))
                             {
-                                <a style="font-size: 16px;" class="article-source" href="@article.SourceUrl">BBCNews</a>
+                                <p class="article-source">@article.Author</p>
                             }
                             else
                             {
-                                <p style="font-size: 16px;" class="article-source">Original</p>
+                                <a href="@article.SourceUrl" class="article-source">BBC News</a>
 
                             }
                             <h2 class="articles-list-title" style="font-size: 20px;">@article.Title</h2>
                             <p class="articles-list-content" style="font-size: 16px;">@article.Content.Substring(0, Math.Min(200, article.Content.Length))...</p>
                             <div class="articles-list-controls">
-                                <div>
+                                <div style="display: flex;">
 
 
                                     <MudIconButton Icon="@Icons.Material.Filled.Favorite"
                                                    Color="@(Likes.Contains(article.Id) ? Color.Primary : Color.Dark)" aria-label="Like"
                                                    OnClick="() => ToggleLike(article)" />
+                                    <MudText Style="align-content: center;">@article.LikeCount </MudText>
                                     <MudIconButton Icon="@Icons.Material.Filled.Bookmark"
                                                    Color="@(Bookmarks.Contains(article.Id) ? Color.Primary : Color.Dark)" aria-label="Saved"
                                                    OnClick="() => ToggleSave(article)" />
+                                    <MudText Style="align-content: center;">@article.SavedCount</MudText>
 
                                 </div>
                                 <p>@article.PublishDate.ToShortDateString()</p>
