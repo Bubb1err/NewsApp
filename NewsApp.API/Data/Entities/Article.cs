@@ -10,6 +10,12 @@ namespace NewsApp.API.Data.Entities
 
         public string SourceUrl { get; set; }
         
+        public Guid CategoryId { get; set; }
+        
+        public Category Category { get; set; }
+        
+        public string AuthorId { get; set; }
+        
         public string Author { get; set; }
 
         public DateTime PublishDate { get; set; }
@@ -29,6 +35,23 @@ namespace NewsApp.API.Data.Entities
         public void AddSaved() => SavedCount++;
         
         public void RemoveSaved() => SavedCount--;
+
+        public void Update(string title, string content)
+        {
+            if (Title != title)
+            {
+                Title = title;
+
+            }
+
+            if (Content != content)
+            {
+                Content = content;
+
+            }
+
+            
+        }
 
 
     }

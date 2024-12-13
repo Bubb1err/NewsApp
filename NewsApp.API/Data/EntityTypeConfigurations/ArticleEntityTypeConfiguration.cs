@@ -29,6 +29,13 @@ namespace NewsApp.API.Data.EntityTypeConfigurations
                 .WithOne(c => c.Article)
                 .HasForeignKey(c => c.ArticleId)
                 .OnDelete(DeleteBehavior.Cascade);
+            
+            
+            builder.HasOne(c => c.Category)
+                .WithMany(a => a.Articles) 
+                .HasForeignKey(c => c.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
         }
     }
 }

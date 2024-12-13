@@ -8,5 +8,6 @@ namespace NewsApp.API.Data.Repository;
 [Repository(typeof(Comment))]
 public class CommentRepository(ApplicationDbContext context) : BaseRepository<Comment>(context)
 {
+    
 
 }

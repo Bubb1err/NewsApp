@@ -66,6 +66,8 @@ public class AccessControlService(
         return tokenHandler.WriteToken(token);
     }
 
+    
+    
     public async Task<List<Claim>> GetUserClaimsByEmail(string email)
     {
         var user = await userManager.FindByEmailAsync(email);

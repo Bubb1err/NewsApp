@@ -53,6 +53,7 @@ public class CustomAuthenticationService
     public async Task LogoutAsync()
     {
         await _localStorage.RemoveItemAsync("authToken");
+        Console.WriteLine(_localStorage.GetItemAsync<string>("authToken"));
         _httpClient.DefaultRequestHeaders.Authorization = null;
     }
     

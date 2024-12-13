@@ -35,8 +35,6 @@ namespace NewsApp.API.Controllers;
         [Authorize]
         public async Task<IActionResult> CreateComment([FromBody] CreateCommentCommand createCommentCommand)
         {
-            Console.WriteLine("SAVING COMMENT");
-            Console.WriteLine(createCommentCommand.Content);
             if (await GetCurrentUser() is var user && user == null || string.IsNullOrEmpty(user.Id))
             {
                 return BadRequest("Failed to get current user.");
@@ -70,36 +68,6 @@ namespace NewsApp.API.Controllers;
             return Ok(new DataApiResponseDto<List<CommentDto>> { Item  = comments });
         }
         
-        
-
-      /*  [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateComment(int id, [FromBody] UpdateCommentCommand updateCommentCommand)
-        {
-            if (await GetCurrentUser() is var user && user == null || string.IsNullOrEmpty(user.Id))
-            {
-                return BadRequest("Failed to get current user.");
-            }
-
-            updateCommentCommand.UserId = user.Id; 
-            updateCommentCommand.Id = id; 
-            await _mediator.Send(updateCommentCommand);
-
-            return NoContent(); 
-        }*/
-
-       /* [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteComment(int id)
-        {
-            if (await GetCurrentUser() is var user && user == null || string.IsNullOrEmpty(user.Id))
-            {
-                return BadRequest("Failed to get current user.");
-            }
-
-            var deleteCommand = new DeleteCommentCommand(id, user.Id);
-            await _mediator.Send(deleteCommand);
-
-            return NoContent(); 
-        }*/
         
         protected async Task<User?> GetCurrentUser()
         {

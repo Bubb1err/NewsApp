@@ -107,6 +107,30 @@ public class AuthenticationController(
         Guard.Against.Null(user, nameof(user));
         return user;
     }
+    
+    /*[HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        // Simulate the logout process
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null)
+        {
+            return Unauthorized(new { Message = "No active user session found." });
+        }
+
+        var userId = new Guid(userIdClaim.Value);
+
+        // Perform necessary cleanup here
+        // For example, if using a token blacklist, add the token to the blacklist.
+
+        // Optionally, invalidate any session or refresh tokens
+        await accessControl. InvalidateUserTokensAsync(userId);
+
+        // Notify the client to remove the token
+        return Ok(new { Message = "User has been logged out successfully." });
+    }
+    */
 
    
 
