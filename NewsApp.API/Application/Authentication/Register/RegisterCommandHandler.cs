@@ -6,6 +6,7 @@ using NewsApp.API.Data.Entities;
 using NewsApp.API.Data.Repository.Base;
 using NewsApp.Shared.Models.Base;
 using NewsApp.Shared.Models.Dto.User;
+using NewsApp.API.Constants;
 
 namespace NewsApp.API.Application.Authentication.Register;
 
@@ -45,6 +46,8 @@ internal sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, 
         }
 
         var userDto = _mapper.Map<UserDto>(user);
+
+        await _userManager.AddToRoleAsync(user, UserRoles.Default);
 
         return new DataApiResponseDto<UserDto>
         {

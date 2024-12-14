@@ -1,4 +1,5 @@
-﻿using NewsApp.Shared.Models.Dto.Coment;
+﻿using NewsApp.Shared.Models.Dto;
+using NewsApp.Shared.Models.Dto.Coment;
 
 namespace NewsApp.Shared.Models
 {
@@ -10,10 +11,15 @@ namespace NewsApp.Shared.Models
 
         public string Content { get; set; }
 
+        public string? Author { get; set; }
         public DateTime PublishDate { get; set; }
         
         public List<CommentDto> Comments { get; set; }
         
+        public CategoryDto Category { get; set; }
+
+        public bool IsPremium { get; set; }
+
         public int LikeCount { get; set; }
         
         public int SavedCount { get; set; }

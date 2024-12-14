@@ -21,6 +21,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CustomAuthenticationService>();
 builder.Services.AddScoped<CommentService>();
 
+builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<UserService>();
 
 builder.Services.AddScoped<AricleService>();

@@ -31,6 +31,7 @@ internal sealed class CreateArticleCommandHandler : IRequestHandler<CreateArticl
             Author = request.Author,
             PublishDate = DateTime.UtcNow,
             Id = id,
+            AuthorId = "00000000-0000-0000-0000-000000000001",
             SourceUrl = "https://localhost:7220/" + id,
             
         };

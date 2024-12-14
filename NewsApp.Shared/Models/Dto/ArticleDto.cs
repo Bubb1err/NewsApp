@@ -5,21 +5,12 @@ namespace NewsApp.Shared.Models.Dto
     public class ArticleDto
     {
         public Guid Id { get; set; }
-
-        public string Title { get; set; }
-
-        public string SourceUrl { get; set; }
-
-        public string Content { get; set; }
-        
-        public string Author { get; set; }
-
+        public string Title { get; set; } = string.Empty;
+        public string Content { get; set; } = string.Empty;
+        public string Author { get; set; } = string.Empty;
         public DateTime PublishDate { get; set; }
-        
-        public List<CommentDto> Comments { get; set; }
-        
-        public int LikeCount { get; set; }
-        public int SavedCount { get; set; }
-
+        public string SourceUrl { get; set; } = string.Empty;
+        public CategoryDto? Category { get; set; }
+        public bool IsPremium { get; set; }
     }
 }

@@ -4,234 +4,561 @@
 @inject CustomAuthenticationService AuthService
 @inject UserService UserService
 @inject AricleService AricleService
+@inject CategoryService CategoryService
 
 @page "/news"
- 
+
+@using NewsApp.Shared.Models
 @using NewsApp.Shared.Models.Base
 @using NewsApp.Shared.Models.Dto
 @using NewsApp.Shared.Models.Dto.User
 @using NewsApp.UI.Service
+@using ArticleDto = NewsApp.Shared.Models.Dto.ArticleDto
 
-<MudContainer MaxWidth="MaxWidth.Large" Style="margin-top: 5em;">
-
-    @if (articles == null)
-    {
-        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
-        <MudText Typo="Typo.body1" Class="mt-3">Loading articles...</MudText>
-    }
-    else if (!articles.Items.Any())
-    {
-        <MudText Typo="Typo.body1" Class="mt-3">No articles found.</MudText>
-    }
-    else
-    {
-        <div style="display: flex">
-            <div style="width: 70%;margin-right: 3em;">
-                @foreach (var article in articles.Items)
+<div class="container">
+    <div class="content-layout">
+        <!-- Левая панель с категориями -->
+        <aside class="categories-panel">
+            <h3>Categories</h3>
+            <div class="categories-list">
+                <div class="category-item @(string.IsNullOrEmpty(selectedCategory) ? "active" : "")" 
+                     @onclick="() => SelectedCategory = string.Empty">
+                    All Categories
+                </div>
+                @if (categories != null)
                 {
-                    if (article.Title.Length > 0 && article.Content.Length > 0)
+                    @foreach (var category in categories)
                     {
+                        <div class="category-item @(selectedCategory == category.Name ? "active" : "")" 
+                             @onclick="() => SelectedCategory = category.Name">
+                            @category.Name
+                        </div>
+                    }
+                }
+            </div>
+        </aside>
 
+        <!-- Основной контент -->
+        <div class="main-content">
+            <!-- Панель фильтров -->
+            <div class="filters-panel">
+                <div class="search-box">
+                    <input type="text" 
+                           placeholder="Search articles..." 
+                           @bind="searchTerm" 
+                           @bind:event="oninput"
+                           @onkeyup="SearchKeyPressed" />
+                    <span class="search-icon">🔍</span>
+                </div>
 
-                        <div class="article-list-block" @onclick="() => NavigateToArticleDetail(article.Id)">
-                            @if (article.Author != null && !string.IsNullOrWhiteSpace(article.Author))
-                            {
-                                <p class="article-source" >@article.Author</p>
-                            }
-                            else
-                            {
-                                <a href="@article.SourceUrl" class="article-source">BBC News</a>
+                <div class="sort-controls">
+                    <select @bind="selectedSortBy" >
+                        <option value="publishDate">Sort by Date</option>
+                        <option value="title">Sort by Title</option>
+                        <option value="author">Sort by Author</option>
+                    </select>
+                    <button class="sort-direction" @onclick="ToggleSortDirection">
+                        @(isDescending ? "↓" : "↑")
+                    </button>
+                </div>
+            </div>
 
-                            }
-                            <h2 class="articles-list-title">@article.Title</h2>
-                            <p class="articles-list-content">@article.Content.Substring(0, Math.Min(200, article.Content.Length))...</p>
-                            <div class="articles-list-controls">
-                                <div style="display: flex ;gap: 10px;">
-                                    
-                                    <MudIconButton Icon="@Icons.Material.Filled.Favorite"
-                                                   Color="@(Likes.Contains(article.Id) ? Color.Primary : Color.Dark)" aria-label="Like"
-                                                   OnClick="() => ToggleLike(article)" />
-                                    <MudText Style="align-content: center;">@article.LikeCount </MudText>
-
-                                                            
-                                    <MudIconButton Icon="@Icons.Material.Filled.Bookmark"
-                                                   Color="@(Bookmarks.Contains(article.Id) ? Color.Primary : Color.Dark)" aria-label="Saved"
-                                                   OnClick="() => ToggleSave(article)" />
-                                    <MudText Style="align-content: center;">@article.SavedCount</MudText>
-                                    
+            @if (articles == null)
+            {
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading articles...</p>
+                </div>
+            }
+            else if (!articles.Items.Any())
+            {
+                <div class="no-results">
+                    <p>No articles found matching your criteria.</p>
+                </div>
+            }
+            else
+            {
+                <div class="articles-list">
+                    @foreach (var article in articles.Items)
+                    {
+                        if (!string.IsNullOrEmpty(article.Title) && !string.IsNullOrEmpty(article.Content))
+                        {
+                            <article class="article-card" @onclick="() => NavigateToArticleDetail(article.Id)">
+                                <div class="article-header">
+                                    <h2>@article.Title</h2>
+                                    <div class="article-meta">
+                                        <span class="date">@article.PublishDate.ToString("MMM dd, yyyy")</span>
+                                        <span class="author">@article.Author</span>
+                                        @if (article.Category != null)
+                                        {
+                                            <span class="category-tag">@article.Category.Name</span>
+                                        }
+                                    </div>
                                 </div>
-                                <p>@article.PublishDate.ToShortDateString()</p>
+                                <div class="article-content">
+                                    <p class="article-preview">
+                                        @(article.Content.Length > 300 ? article.Content[..300] + "..." : article.Content)
+                                    </p>
+                                </div>
+                            </article>
+                        }
+                    }
+                </div>
+
+                <div class="pagination">
+                    @for (int i = 1; i <= articles.TotalPages; i++)
+                    {
+                        var pageNumber = i;
+                        <button class="page-button @(pageNumber == currentPage ? "active" : "")"
+                                @onclick="() => PageChanged(pageNumber)">
+                            @i
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Правая панель с популярными статьями -->
+        <aside class="popular-panel">
+            <h3>Popular Articles</h3>
+            <div class="popular-articles">
+                @if (_topArticles?.Items != null)
+                {
+                    @foreach (var article in _topArticles.Items)
+                    {
+                        <div class="popular-article" @onclick="() => NavigateToArticleDetail(article.Id)">
+                            <h4>@article.Title</h4>
+                            <div class="popular-article-meta">
+                                <span class="date">@article.PublishDate.ToString("MMM dd")</span>
+                                <span class="author">@article.Author</span>
                             </div>
                         </div>
                     }
                 }
             </div>
-            <div style="width: 30%;">
-                @foreach (var article in _topArticles.Items)
-                {
-                    if (article.Title.Length > 0 && article.Content.Length > 0)
-                    {
-                        var isLiked = false;
+        </aside>
+    </div>
+</div>
 
-                        var isSaved = false;
-
-
-                        <div class="article-list-block" @onclick="() => NavigateToArticleDetail(article.Id)">
-                            @if (article.Author != null && !string.IsNullOrWhiteSpace(article.Author))
-                            {
-                                <p class="article-source">@article.Author</p>
-                            }
-                            else
-                            {
-                                <a href="@article.SourceUrl" class="article-source">BBC News</a>
-
-                            }
-                            <h2 class="articles-list-title" style="font-size: 20px;">@article.Title</h2>
-                            <p class="articles-list-content" style="font-size: 16px;">@article.Content.Substring(0, Math.Min(200, article.Content.Length))...</p>
-                            <div class="articles-list-controls">
-                                <div style="display: flex;">
-
-
-                                    <MudIconButton Icon="@Icons.Material.Filled.Favorite"
-                                                   Color="@(Likes.Contains(article.Id) ? Color.Primary : Color.Dark)" aria-label="Like"
-                                                   OnClick="() => ToggleLike(article)" />
-                                    <MudText Style="align-content: center;">@article.LikeCount </MudText>
-                                    <MudIconButton Icon="@Icons.Material.Filled.Bookmark"
-                                                   Color="@(Bookmarks.Contains(article.Id) ? Color.Primary : Color.Dark)" aria-label="Saved"
-                                                   OnClick="() => ToggleSave(article)" />
-                                    <MudText Style="align-content: center;">@article.SavedCount</MudText>
-
-                                </div>
-                                <p>@article.PublishDate.ToShortDateString()</p>
-                            </div>
-                        </div>
-                    }
-                }
-            </div>
-        </div> 
+<style>
+    .container {
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 0 1rem;
     }
-</MudContainer>
+
+    .content-layout {
+        display: flex;
+        gap: 2rem;
+    }
+
+    .categories-panel {
+        width: 250px;
+        background: #fff;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        height: fit-content;
+        position: sticky;
+        top: 2rem;
+    }
+
+    .categories-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .category-item {
+        padding: 0.75rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .category-item:hover {
+        background: #f0f0f0;
+    }
+
+    .category-item.active {
+        background: #007bff;
+        color: white;
+    }
+
+    .main-content {
+        flex: 1;
+    }
+
+    .filters-panel {
+        background: #fff;
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .search-box {
+        position: relative;
+        flex: 1;
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 0.75rem 2.5rem 0.75rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 1rem;
+    }
+
+    .sort-controls {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .sort-controls select {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 1rem;
+    }
+
+    .sort-direction {
+        padding: 0.75rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background: white;
+        cursor: pointer;
+        font-size: 1.2rem;
+    }
+
+    .articles-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .article-card {
+        background: #fff;
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .article-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .article-header {
+        margin-bottom: 0.5rem;
+    }
+
+    .article-header h2 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1.2rem;
+        color: #333;
+    }
+
+    .article-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: #666;
+    }
+
+    .article-content {
+        color: #444;
+        line-height: 1.4;
+        font-size: 0.9rem;
+    }
+
+    .category-tag {
+        display: inline-block;
+        padding: 0.15rem 0.5rem;
+        background: #e9ecef;
+        border-radius: 20px;
+        font-size: 0.75rem;
+    }
+
+    .search-icon {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+    }
+
+    .popular-articles {
+        flex: 3;
+        background: #fff;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        height: fit-content;
+    }
+
+    .popular-articles h3 {
+        margin: 0 0 1rem 0;
+        color: #333;
+    }
+
+    .popular-article-link {
+        display: block;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #eee;
+        color: #333;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .popular-article-link:hover {
+        color: #007bff;
+    }
+
+    .popular-article-link p {
+        margin: 0;
+    }
+
+    .pagination {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .page-button {
+        padding: 0.5rem 1rem;
+        border: 1px solid #ddd;
+        background: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .page-button:hover {
+        background: #f8f9fa;
+    }
+
+    .page-button.active {
+        background: #007bff;
+        color: #fff;
+        border-color: #007bff;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #007bff;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: Spin 1s linear infinite;
+        margin: 0 auto 1rem;
+    }
+
+    @@keyframes Spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 2rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        color: #666;
+    }
+
+    @@media screen and (max-width: 768px) {
+        .content-layout {
+            flex-direction: column;
+        }
+
+        .filters-panel {
+            flex-direction: column;
+        }
+
+        .popular-articles {
+            order: -1;
+        }
+    }
+
+    .article-preview {
+        margin: 0;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .popular-panel {
+        width: 300px;
+        background: #fff;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        height: fit-content;
+        position: sticky;
+        top: 2rem;
+    }
+
+    .popular-panel h3 {
+        margin: 0 0 1rem 0;
+        font-size: 1.2rem;
+        color: #333;
+    }
+
+    .popular-articles {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .popular-article {
+        padding: 0.75rem;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .popular-article:hover {
+        background-color: #f8f9fa;
+    }
+
+    .popular-article h4 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1rem;
+        color: #333;
+    }
+
+    .popular-article-meta {
+        display: flex;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: #666;
+    }
+
+    @@media screen and (max-width: 1200px) {
+        .popular-panel {
+            display: none;
+        }
+    }
+</style>
 
 @code {
     private DataCollectionApiResponseDto<ArticleDto>? articles;
     private DataCollectionApiResponseDto<ArticleDto>? _topArticles;
-    private bool isAuthenticated= false;
-
+    private List<CategoryDto>? categories;
+    private bool isAuthenticated = false;
     private List<Guid> Likes = [];
     private List<Guid> Bookmarks = [];
+
+    // Параметры фильтрации и сортировки
+    private string searchTerm = "";
+    private string selectedCategory = "";
+    
+    
+    private string SelectedCategory
+    {
+        get => selectedCategory;
+        set
+        {
+            selectedCategory = value;
+            FilterArticles();
+        }
+    }
+    
+    
+    private string selectedSortBy = "publishDate";
+    private bool isDescending = true;
+    private int currentPage = 1;
+    private const int pageSize = 10;
+
+    
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            categories = await CategoryService.GetAllCategories();
+            await LoadArticles();
+
+            StateHasChanged();
+        }
+    }
+    
+    
+
+    private async Task LoadArticles()
+    {
+        try
+        {
+            var parameters = new ArticleQueryParameters
+            {
+                SearchTerm = searchTerm,
+                CategoryName = selectedCategory,
+                SortBy = selectedSortBy,
+                Descending = isDescending,
+                PageNumber = currentPage,
+                PageSize = pageSize
+            };
+
+            articles = await AricleService.GetAllArticlesAsync(parameters);
+            _topArticles = await AricleService.GetPopularArticlesAsync();
+            
             isAuthenticated = await AuthService.IsUserAuthenticatedAsync();
-            
-            try
+            if (isAuthenticated)
             {
-
-                articles = await AricleService.GetAllArticlesAsync();
-                _topArticles = await AricleService.GetPopularArticlesAsync();
-                
-                
-                try
-                {
-                    
-                    Likes = await UserService.GetUserLikes();
-                    Bookmarks = await UserService.GetUserBookmarks();
-
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("LIKES ANA BOOKMARKS ERROR");
-                    Console.WriteLine(e);
-                }
+                Likes = await UserService.GetUserLikes();
+                Bookmarks = await UserService.GetUserBookmarks();
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error fetching articles: {ex.Message}");
-                articles = new DataCollectionApiResponseDto<ArticleDto>();
-                
-
-            }
-
-            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading articles: {ex.Message}");
         }
     }
-    
 
-    private async Task ToggleLike(ArticleDto articleDto)
+    private async Task FilterArticles()
     {
-        
-        if (isAuthenticated)
-        {
-                var dto = new UpdateDto();
-                dto.userId = "";
-                dto.Value = !Likes.Contains(articleDto.Id);
-                dto.articleId = articleDto.Id;
-                
-                
-                
-                await UserService.UpdateLikes(dto);
-                
-                if (!Likes.Contains(articleDto.Id))
-                {
-                    articleDto.LikeCount++;
-                    Likes.Add(articleDto.Id);
-                }
-                else
-                {
-                    articleDto.LikeCount--;
-                    Likes.Remove(articleDto.Id);
-                }
-                StateHasChanged();
-
-
-
-        }
-        else
-        {
-            Navigation.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
-        }
-
-
+        currentPage = 1;
+        await LoadArticles();
     }
-    
-    private async Task ToggleSave(ArticleDto articleDto)
+
+    private async Task SearchKeyPressed(KeyboardEventArgs e)
     {
-        if (isAuthenticated)
+        if (e.Key == "Enter")
         {
-            var dto = new UpdateDto();
-            dto.userId = "";
-            dto.Value = !Bookmarks.Contains(articleDto.Id);
-            dto.articleId = articleDto.Id;
-            
-            await UserService.UpdateBookmarks(dto);
-             
-            if (!Bookmarks.Contains(articleDto.Id))
-            {
-                articleDto.SavedCount++;
-                Bookmarks.Add(articleDto.Id);
-            }
-            else
-            {
-                articleDto.SavedCount--;
-                Bookmarks.Remove(articleDto.Id);
-            }
-            
-
-            StateHasChanged();
-
+            await FilterArticles();
         }
-        else
-        {
-            Navigation.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
-        }
-
     }
-    private void NavigateToArticleDetail(Guid articleId)
+
+    private async Task PageChanged(int page)
     {
-        Navigation.NavigateTo($"/article/{articleId}");
+        currentPage = page;
+        await LoadArticles();
     }
 
-}
+    private void NavigateToArticleDetail(Guid id)
+    {
+        Navigation.NavigateTo($"/article/{id}");
+    }
+
+    private void ToggleSortDirection()
+    {
+        isDescending = !isDescending;
+        FilterArticles();
+    }
 }
