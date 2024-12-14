@@ -17,6 +17,8 @@ namespace NewsApp.API.Services
     {
         private readonly UnitOfWork _unitOfWork;
         private readonly ILogger<ExtractNewestArticlesService> _logger;
+        private readonly CategoryInitializerService _categoryInitializer;
+
         private readonly Dictionary<string, string> _rssSources = new()
         {
             { "BBC", "https://feeds.bbci.co.uk/news/rss.xml" },
@@ -24,10 +26,14 @@ namespace NewsApp.API.Services
             {"FoxNews","https://moxie.foxnews.com/google-publisher/latest.xml"}
         };
 
-        public ExtractNewestArticlesService(UnitOfWork unitOfWork, ILogger<ExtractNewestArticlesService> logger)
+        public ExtractNewestArticlesService(
+            UnitOfWork unitOfWork, 
+            ILogger<ExtractNewestArticlesService> logger,
+            CategoryInitializerService categoryInitializer)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _categoryInitializer = categoryInitializer;
         }
 
         public async Task ParseAndSaveNewArticles()
@@ -36,20 +42,7 @@ namespace NewsApp.API.Services
             var articles = await GetArticles();
             _logger.LogInformation($"Found {articles.Count} articles to process");
 
-            var articlesToSave = articles.Select(a => new Article 
-            { 
-                Title = a.Title, 
-                Content = a.Content, 
-                PublishDate = a.PublishDate, 
-                Author = a.Author,
-                SourceUrl = a.SourceUrl
-            });
-
-            var savedCount = 0;
-            var skipCount = 0;
-            var errorCount = 0;
-
-            foreach (var article in articlesToSave)
+            foreach (var article in articles)
             {
                 try 
                 {
@@ -59,28 +52,36 @@ namespace NewsApp.API.Services
 
                     if (!exists)
                     {
-                        await _unitOfWork.GetRepository<Article>().AddAsync(article);
+                        var category = await _categoryInitializer.GetCategoryForSource(article.Author);
+                        if (category != null)
+                        {
+                            var trackedCategory = await _unitOfWork.GetRepository<Category>()
+                                .GetAll()
+                                .FirstOrDefaultAsync(c => c.Id == category.Id);
+                            category = trackedCategory;
+                        }
+
+                        var newArticle = new Article 
+                        { 
+                            Title = article.Title, 
+                            Content = article.Content, 
+                            PublishDate = article.PublishDate, 
+                            Author = article.Author,
+                            SourceUrl = article.SourceUrl,
+                            CategoryId = category?.Id
+                        };
+
+                        await _unitOfWork.GetRepository<Article>().AddAsync(newArticle);
                         await _unitOfWork.SaveAsync();
-                        savedCount++;
-                        _logger.LogInformation($"Saved new article: {article.Title} | URL: {article.SourceUrl}");
-                    }
-                    else
-                    {
-                        skipCount++;
-                        _logger.LogInformation($"Skipped existing article: {article.Title} | URL: {article.SourceUrl}");
+                        
+                        _logger.LogInformation($"Saved new article: {article.Title} | Category: {category?.Name ?? "None"}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    errorCount++;
-                    _logger.LogError(ex, $"Error saving article: {article.Title} | URL: {article.SourceUrl}");
+                    _logger.LogError(ex, $"Error saving article: {article.Title}");
                 }
             }
-
-            _logger.LogInformation($"Article processing completed. " +
-                                 $"Saved: {savedCount}, " +
-                                 $"Skipped: {skipCount}, " +
-                                 $"Errors: {errorCount}");
         }
 
         private async Task<List<ArticleDto>> GetArticles()

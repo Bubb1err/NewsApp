@@ -46,22 +46,9 @@ public class AricleService
     
     public async Task<DataCollectionApiResponseDto<ArticleDto>> GetPopularArticlesAsync()
     {
-        var parameters = new ArticleQueryParameters
-        {
-            PageSize = 5,
-            PageNumber = 1,
-            SortBy = "likes",
-            Descending = true
-        };
+       
         
-        var url = $"Article?{string.Join("&", new[] {
-            $"PageSize={parameters.PageSize}",
-            $"PageNumber={parameters.PageNumber}",
-            $"SortBy={parameters.SortBy}",
-            $"Descending={parameters.Descending}"
-        })}";
-        
-        return await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>(url) 
+        return await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("Article/Popular") 
                ?? new DataCollectionApiResponseDto<ArticleDto>();
     }
     public async Task<ArticleDto> GetAArticleByIdAsync(Guid articleId)

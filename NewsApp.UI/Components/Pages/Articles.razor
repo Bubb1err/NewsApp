@@ -527,13 +527,15 @@
     private string selectedCategory = "";
     
     
-    private string SelectedCategory
+    private  string SelectedCategory
     {
         get => selectedCategory;
-        set
+         set
         {
             selectedCategory = value;
-            FilterArticles();
+             FilterArticles();
+             StateHasChanged();
+
         }
     }
     
@@ -581,6 +583,9 @@
                 Likes = await UserService.GetUserLikes();
                 Bookmarks = await UserService.GetUserBookmarks();
             }
+            
+            StateHasChanged();
+
         }
         catch (Exception ex)
         {
@@ -592,6 +597,8 @@
     {
         currentPage = 1;
         await LoadArticles();
+        StateHasChanged();
+
     }
 
     private async Task SearchKeyPressed(KeyboardEventArgs e)
@@ -613,10 +620,12 @@
         Navigation.NavigateTo($"/article/{id}");
     }
 
-    private void ToggleSortDirection()
+    private async void ToggleSortDirection()
     {
         isDescending = !isDescending;
-        FilterArticles();
+        await FilterArticles();
+        StateHasChanged();
+
     }
 
     private async Task ToggleLike(Guid articleId)

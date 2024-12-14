@@ -98,8 +98,16 @@ public class UserService
     {
         var token = await _tokenProvider.GetTokenAsync();
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        var response = await _httpClient.GetFromJsonAsync<DataApiResponseDto<UserDto>>("User/info");
-        return response.Item;
+        try
+        {
+            var response = await _httpClient.GetFromJsonAsync<DataApiResponseDto<UserDto>>("User/info");
+            return response.Item;
+        }
+        catch (Exception e)
+        {
+            return new UserDto();
+        }
+       
         
     }
 

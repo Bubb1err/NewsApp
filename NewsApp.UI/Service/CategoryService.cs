@@ -19,7 +19,7 @@ public class CategoryService
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<CategoryDto>>("Articles/categories");
+            var response = await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<CategoryDto>>("Category");
             return response?.Items?.ToList() ?? new List<CategoryDto>();
         }
         catch (Exception ex)
