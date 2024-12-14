@@ -14,6 +14,9 @@
 @using NewsApp.Shared.Models.Dto.User
 @using NewsApp.UI.Service
 @using ArticleDto = NewsApp.Shared.Models.Dto.ArticleDto
+@using UpdateDto = NewsApp.Shared.Models.Dto.User.UpdateDto
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 <div class="container">
     <div class="content-layout">
@@ -83,8 +86,20 @@
                     {
                         if (!string.IsNullOrEmpty(article.Title) && !string.IsNullOrEmpty(article.Content))
                         {
-                            <article class="article-card" @onclick="() => NavigateToArticleDetail(article.Id)">
-                                <div class="article-header">
+                            <article class="article-card">
+                                <div class="article-actions">
+                                    <button class="action-button @(Likes.Contains(article.Id) ? "active" : "")"
+                                            @onclick="() => ToggleLike(article.Id)"
+                                            @onclick:stopPropagation>
+                                        <i class="bi bi-heart@(Likes.Contains(article.Id) ? "-fill" : "")"></i>
+                                    </button>
+                                    <button class="action-button @(Bookmarks.Contains(article.Id) ? "active" : "")"
+                                            @onclick="() => ToggleBookmark(article.Id)"
+                                            @onclick:stopPropagation>
+                                        <i class="bi bi-bookmark@(Bookmarks.Contains(article.Id) ? "-fill" : "")"></i>
+                                    </button>
+                                </div>
+                                <div class="article-header" @onclick="() => NavigateToArticleDetail(article.Id)">
                                     <h2>@article.Title</h2>
                                     <div class="article-meta">
                                         <span class="date">@article.PublishDate.ToString("MMM dd, yyyy")</span>
@@ -95,7 +110,7 @@
                                         }
                                     </div>
                                 </div>
-                                <div class="article-content">
+                                <div class="article-content" @onclick="() => NavigateToArticleDetail(article.Id)">
                                     <p class="article-preview">
                                         @(article.Content.Length > 300 ? article.Content[..300] + "..." : article.Content)
                                     </p>
@@ -249,6 +264,7 @@
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         cursor: pointer;
         transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
     }
 
     .article-card:hover {
@@ -257,6 +273,7 @@
     }
 
     .article-header {
+        padding-right: 6rem;
         margin-bottom: 0.5rem;
     }
 
@@ -455,6 +472,46 @@
             display: none;
         }
     }
+
+    .article-actions {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        display: flex;
+        gap: 0.5rem;
+        z-index: 1;
+    }
+
+    .action-button {
+        background: white;
+        border: none;
+        border-radius: 50%;
+        width: 2.5rem;
+        height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.2s;
+        padding: 0;
+        margin: 0;
+        font-size: 1.2rem;
+    }
+
+    .action-button:hover {
+        transform: scale(1.1);
+        background: #f8f9fa;
+    }
+
+    .action-button.active {
+        background: #FF8000;
+        color: white;
+    }
+
+    .article-card {
+        position: relative;
+    }
 </style>
 
 @code {
@@ -560,5 +617,75 @@
     {
         isDescending = !isDescending;
         FilterArticles();
+    }
+
+    private async Task ToggleLike(Guid articleId)
+    {
+        if (!isAuthenticated)
+        {
+            Navigation.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
+            return;
+        }
+
+        try
+        {
+            var userId = await UserService.GetUserId();
+            var updateDto = new UpdateDto
+            {
+                userId = userId.ToString(),
+                articleId = articleId,
+                Value = !Likes.Contains(articleId)
+            };
+            
+            var success = await UserService.UpdateLikes(updateDto);
+            if (success)
+            {
+                if (Likes.Contains(articleId))
+                    Likes.Remove(articleId);
+                else
+                    Likes.Add(articleId);
+                
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error toggling like: {ex.Message}");
+        }
+    }
+
+    private async Task ToggleBookmark(Guid articleId)
+    {
+        if (!isAuthenticated)
+        {
+            Navigation.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
+            return;
+        }
+
+        try
+        {
+            var userId = await UserService.GetUserId();
+            var updateDto = new UpdateDto
+            {
+                userId = userId.ToString(),
+                articleId = articleId,
+                Value = !Bookmarks.Contains(articleId)
+            };
+            
+            var success = await UserService.UpdateBookmarks(updateDto);
+            if (success)
+            {
+                if (Bookmarks.Contains(articleId))
+                    Bookmarks.Remove(articleId);
+                else
+                    Bookmarks.Add(articleId);
+                
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error toggling bookmark: {ex.Message}");
+        }
     }
 }
