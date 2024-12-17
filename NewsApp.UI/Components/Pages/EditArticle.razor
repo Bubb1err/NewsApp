@@ -1,0 +1,234 @@
+@page "/articles/edit/{Id:guid}"
+@using NewsApp.Shared.Models.Dto
+@using NewsApp.UI.Service
+@inject NavigationManager Navigation
+@inject AricleService ArticleService
+@inject CustomAuthenticationService AuthService
+@inject UserService UserService
+@rendermode InteractiveServer
+
+<div class="edit-article-container">
+    <div class="header">
+        <h2>Edit Article</h2>
+        <div class="header-buttons">
+            <button class="btn btn-danger" @onclick="DeleteArticleAsync">
+                <i class="oi oi-trash"></i>
+                Delete
+            </button>
+            <button class="btn btn-secondary" @onclick="NavigateBack">
+                <i class="oi oi-arrow-left"></i>
+                Back
+            </button>
+        </div>
+    </div>
+
+    @if (article != null)
+    {
+        <EditForm Model="@article" OnValidSubmit="UpdateArticleAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-container">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <InputText id="title" 
+                              class="form-control" 
+                              @bind-Value="article.Title" 
+                              placeholder="Enter article title"/>
+                    <ValidationMessage For="@(() => article.Title)" />
+                </div>
+
+                <div class="form-group">
+                    <label for="content">Content</label>
+                    <InputTextArea id="content" 
+                                 class="form-control" 
+                                 @bind-Value="article.Content" 
+                                 placeholder="Enter article content"
+                                 rows="10"/>
+                    <ValidationMessage For="@(() => article.Content)" />
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <InputSelect id="category" class="form-control" @bind-Value="article.CategoryId">
+                        @if (categories != null)
+                        {
+                            @foreach (var category in categories)
+                            {
+                                <option value="@category.Id">@category.Name</option>
+                            }
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="form-group">
+                    <label for="imageUrl">Image URL</label>
+                    <InputText id="imageUrl" 
+                              class="form-control" 
+                              @bind-Value="article.ImageUrl" 
+                              placeholder="Enter image URL"/>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="oi oi-check"></i>
+                    Save Changes
+                </button>
+            </div>
+        </EditForm>
+    }
+    else
+    {
+        <div class="loading">Loading...</div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private UpdateArticleDto? article;
+    private List<CategoryDto>? categories;
+    private string? userId;
+    private bool hasEditAccess;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var isAuthenticated = await AuthService.IsUserAuthenticatedAsync();
+            if (!isAuthenticated)
+            {
+                NavigateToAuth();
+                return;
+            }
+
+            userId =  UserService.GetUserIdAsync().ToString();
+            var isAdmin = await AuthService.IsInRoleAsync("Admin");
+            var isPremium = await AuthService.IsInRoleAsync("Premium");
+            
+            await LoadData();
+
+            if (article != null)
+            {
+                hasEditAccess = isAdmin || (isPremium && article.UserId == userId);
+                if (!hasEditAccess)
+                {
+                    NavigateToList();
+                    return;
+                }
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadData()
+    {
+        var articleDto = await ArticleService.GetAArticleByIdAsync(Id);
+        if (articleDto != null)
+        {
+            article = new UpdateArticleDto
+            {
+                Id = articleDto.Id,
+                Title = articleDto.Title,
+                Content = articleDto.Content,
+                UserId = userId
+            };
+        }
+
+       // categories = await ArticleService.GetCategoriesAsync();
+    }
+
+    private async Task UpdateArticleAsync()
+    {
+        if (article == null) return;
+
+        var success = await ArticleService.UpdateArticleAsync(article);
+        if (success)
+        {
+            NavigateToDetails();
+        }
+    }
+
+    private async Task DeleteArticleAsync()
+    {
+        if (article == null || userId == null) return;
+        
+        var success = await ArticleService.DeleteArticleAsync(Id, userId);
+        if (success)
+        {
+            NavigateToList();
+        }
+    }
+
+    private void NavigateToAuth()
+    {
+        Navigation.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
+    }
+
+    private void NavigateToDetails()
+    {
+        Navigation.NavigateTo($"/articles/{Id}");
+    }
+
+    private void NavigateToList()
+    {
+        Navigation.NavigateTo("/news");
+    }
+
+    private void NavigateBack()
+    {
+        NavigateToDetails();
+    }
+}
+
+<style>
+    .edit-article-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .header-buttons {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .form-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-group label {
+        font-weight: 500;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 2rem;
+        color: #666;
+    }
+
+    .validation-message {
+        color: red;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+</style> 

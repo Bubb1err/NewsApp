@@ -22,10 +22,5 @@ public class MappingProfile : Profile
         CreateMap<User, UserDto>();
         CreateMap<Category, CategoryDto>();
         
-        /*// Обратные маппинги если нужны
-        CreateMap<ArticleDto, Article>();
-        CreateMap<CommentDto, Comment>();
-        CreateMap<UserDto, User>();
-        CreateMap<CategoryDto, Category>();*/
     }
 }

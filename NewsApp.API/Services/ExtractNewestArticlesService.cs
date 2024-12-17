@@ -9,6 +9,7 @@ using System.Web;
 using System.Xml.Linq;
 using NewsApp.API.Atributes;
 using Microsoft.Extensions.Logging;
+using NewsApp.API.Services.Initializers;
 
 namespace NewsApp.API.Services
 {

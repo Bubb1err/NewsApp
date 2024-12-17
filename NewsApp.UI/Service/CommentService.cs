@@ -7,11 +7,11 @@ namespace NewsApp.UI.Service;
 public class CommentService
 {
     private readonly HttpClient _httpClient;
-    private readonly ITokenProvider _tokenProvider;
+    private readonly ITokenService _tokenProvider;
 
     public Guid _currentarticleId { get; set; }
 
-    public CommentService(HttpClient httpClient, ITokenProvider tokenProvider)
+    public CommentService(HttpClient httpClient, ITokenService tokenProvider)
     {
         _tokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));
 

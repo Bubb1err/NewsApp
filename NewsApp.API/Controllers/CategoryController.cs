@@ -1,25 +1,29 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NewsApp.API.Application.Articles;
 using NewsApp.API.Application.Articles.Commands;
 using NewsApp.API.Application.Category;
+using NewsApp.API.Data.Entities;
+using NewsApp.Shared.Constants;
 
 namespace NewsApp.API.Controllers;
 
 
 [Route("api/[controller]")]
 [ApiController]
-public class CategoryController : ControllerBase
+public class CategoryController(
+    IMediator _mediator,
+    UserManager<User> _userManager
+    ) : ControllerBase
 {
-    private readonly IMediator _mediator;
-
-    public CategoryController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
+    
+    
 
     [HttpGet]
+    [AllowAnonymous]
+
     public async Task<IActionResult> GetAllCategories()
     {
         var getCategoryQuery = new GetCategoryQuery();
@@ -27,8 +31,9 @@ public class CategoryController : ControllerBase
         return Ok(await _mediator.Send(getCategoryQuery));
     }
     
-    [HttpPost]
-    [Authorize] 
+    [HttpPost] 
+    [Authorize(Policy = "Admin")]
+
     public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryCommand command)
     {
             
@@ -38,7 +43,8 @@ public class CategoryController : ControllerBase
 
 
     [HttpPut]
-    [Authorize]
+    [Authorize(Policy = "Admin")]
+
     public async Task<IActionResult> UpdateCategory([FromBody] UpdateCategoryCommand command)
     {
         var result = await _mediator.Send(command);
@@ -47,7 +53,8 @@ public class CategoryController : ControllerBase
 
 
     [HttpDelete("{id:guid}")]
-    [Authorize]
+    [Authorize(Policy = "Admin")]
+
     public async Task<IActionResult> DeleteCategory([FromRoute] Guid id)
     {
         var deleteCategoryQuery = new DeleteCategoryQuery(id);

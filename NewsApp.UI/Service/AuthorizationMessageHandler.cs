@@ -2,9 +2,9 @@ namespace NewsApp.UI.Service;
 
 public class AuthorizationMessageHandler : DelegatingHandler
 {
-    private readonly ITokenProvider _tokenProvider;
+    private readonly ITokenService _tokenProvider;
 
-    public AuthorizationMessageHandler(ITokenProvider tokenProvider)
+    public AuthorizationMessageHandler(ITokenService tokenProvider)
     {
         _tokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));
     }

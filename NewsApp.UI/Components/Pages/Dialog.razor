@@ -3,7 +3,7 @@
 
 <div class="custom-dialog" style="@(_isDialogOpen ? "display: flex;" : "display: none;")">
     <div class="custom-dialog-content">
-        <span class="close-btn" @onclick="CloseDialog">×</span>
+        <span class="close-btn" @onclick="CloseDialog">ï¿½</span>
         @if (_loading)
         {
             <div class="loader">Loading...</div>
@@ -184,7 +184,7 @@
     public async Task OpenDialog()
     {
                 isAuthenticated = await AuthService.IsUserAuthenticatedAsync();
-                UserId = await AuthService.GetUserId();
+                UserId = new Guid("new Guid( await AuthService.GetUserIdAsync());");
                 StateHasChanged();
         currentArticle = CommentService._currentarticleId;
         await LoadComments();

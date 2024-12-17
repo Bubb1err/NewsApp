@@ -2,61 +2,102 @@
 using System.Net.Http.Headers;
 using NewsApp.Shared.Models;
 using ArticleDto = NewsApp.Shared.Models.Dto.ArticleDto;
+using System.Net.Http.Json;
+using NewsApp.Shared.Models.Dto;
 
 namespace NewsApp.UI.Service;
 
 public class AricleService
 {
-    
     private readonly HttpClient _httpClient;
-    private readonly ITokenProvider _tokenProvider;
+    private readonly ITokenService _tokenProvider;
+    private readonly IConfiguration _configuration;
 
-    
-    public AricleService(HttpClient httpClient , ITokenProvider tokenProvider)
+    public AricleService(HttpClient httpClient, ITokenService tokenProvider, IConfiguration configuration)
     {
+        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _tokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));
-
-        _httpClient = httpClient;
+        _configuration = configuration;
     }
-    
-    
+
     public async Task<DataCollectionApiResponseDto<ArticleDto>> GetAllArticlesAsync(ArticleQueryParameters parameters)
     {
-        var queryString = new List<string>();
-        
-        if (!string.IsNullOrEmpty(parameters.SearchTerm))
-            queryString.Add($"SearchTerm={Uri.EscapeDataString(parameters.SearchTerm)}");
-        
-        if (!string.IsNullOrEmpty(parameters.CategoryName))
-            queryString.Add($"CategoryName={Uri.EscapeDataString(parameters.CategoryName)}");
-        
-        if (!string.IsNullOrEmpty(parameters.SortBy))
-            queryString.Add($"SortBy={parameters.SortBy}");
-        
-        queryString.Add($"Descending={parameters.Descending}");
-        queryString.Add($"PageNumber={parameters.PageNumber}");
-        queryString.Add($"PageSize={parameters.PageSize}");
+        try
+        {
+            var queryString = new List<string>();
+            
+            if (!string.IsNullOrEmpty(parameters.SearchTerm))
+                queryString.Add($"SearchTerm={Uri.EscapeDataString(parameters.SearchTerm)}");
+            
+            if (!string.IsNullOrEmpty(parameters.CategoryName))
+                queryString.Add($"CategoryName={Uri.EscapeDataString(parameters.CategoryName)}");
+            
+            if (!string.IsNullOrEmpty(parameters.SortBy))
+                queryString.Add($"SortBy={parameters.SortBy}");
+            
+            queryString.Add($"Descending={parameters.Descending}");
+            queryString.Add($"PageNumber={parameters.PageNumber}");
+            queryString.Add($"PageSize={parameters.PageSize}");
 
-        var url = $"Article?{string.Join("&", queryString)}";
+            var url = $"Article?{string.Join("&", queryString)}";
+            
+            var response = await _httpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Error fetching articles: {response.StatusCode}");
+                return new DataCollectionApiResponseDto<ArticleDto>();
+            }
 
-        
-        return await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>(url) 
-               ?? new DataCollectionApiResponseDto<ArticleDto>();
+            return await response.Content.ReadFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>()
+                   ?? new DataCollectionApiResponseDto<ArticleDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching articles: {ex.Message}");
+            return new DataCollectionApiResponseDto<ArticleDto>();
+        }
     }
     
     public async Task<DataCollectionApiResponseDto<ArticleDto>> GetPopularArticlesAsync()
     {
-       
-        
-        return await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("Article/Popular") 
-               ?? new DataCollectionApiResponseDto<ArticleDto>();
+        try
+        {
+            var response = await _httpClient.GetAsync("Article/popular");
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Error fetching popular articles: {response.StatusCode}");
+                return new DataCollectionApiResponseDto<ArticleDto>();
+            }
+
+            return await response.Content.ReadFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>()
+                   ?? new DataCollectionApiResponseDto<ArticleDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching popular articles: {ex.Message}");
+            return new DataCollectionApiResponseDto<ArticleDto>();
+        }
     }
+
     public async Task<ArticleDto> GetAArticleByIdAsync(Guid articleId)
     {
-        var response = await _httpClient.GetFromJsonAsync<DataApiResponseDto<ArticleDto>>($"Article/{articleId}");
-        return response.Item;
-        
-        
+        try
+        {
+            var response = await _httpClient.GetAsync($"Article/{articleId}");
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Error fetching article: {response.StatusCode}");
+                return null;
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<DataApiResponseDto<ArticleDto>>();
+            return result?.Item;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching article: {ex.Message}");
+            return null;
+        }
     }
 
     public async Task<bool> CreateArticleAsync(ArticleDto command)
@@ -64,16 +105,79 @@ public class AricleService
         try
         {
             var token = await _tokenProvider.GetTokenAsync();
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var request = new HttpRequestMessage(HttpMethod.Post, "Article");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            request.Content = JsonContent.Create(command);
             
-            var response = await _httpClient.PostAsJsonAsync("Article", command);
-            Console.WriteLine(response.Content.ReadAsStringAsync().Result);
-            return response.IsSuccessStatusCode;
+            var response = await _httpClient.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Error creating article: {response.StatusCode}, {error}");
+                return false;
+            }
+            
+            return true;
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error creating article: {ex.Message}");
             return false;
+        }
+    }
+
+    public async Task<ArticleDto?> GetArticleByIdAsync(Guid id)
+    {
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<ArticleDto>($"Articles/{id}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting article: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<bool> UpdateArticleAsync(UpdateArticleDto article)
+    {
+        try
+        {
+            var response = await _httpClient.PutAsJsonAsync("Articles", article);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating article: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteArticleAsync(Guid id, string userId)
+    {
+        try
+        {
+            var response = await _httpClient.DeleteAsync($"Articles/{id}/{userId}");
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting article: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<List<CategoryDto>> GetCategoriesAsync()
+    {
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<List<CategoryDto>>("Articles/categories") 
+                   ?? new List<CategoryDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting categories: {ex.Message}");
+            return new List<CategoryDto>();
         }
     }
 }

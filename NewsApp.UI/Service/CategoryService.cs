@@ -7,9 +7,9 @@ namespace NewsApp.UI.Service;
 public class CategoryService
 {
     private readonly HttpClient _httpClient;
-    private readonly ITokenProvider _tokenProvider;
+    private readonly ITokenService _tokenProvider;
 
-    public CategoryService(HttpClient httpClient, ITokenProvider tokenProvider)
+    public CategoryService(HttpClient httpClient, ITokenService tokenProvider)
     {
         _httpClient = httpClient;
         _tokenProvider = tokenProvider;

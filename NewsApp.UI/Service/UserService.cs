@@ -1,6 +1,6 @@
 using System.Net.Http.Headers;
 using System.Security.Claims;
-using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using MudBlazor;
 using NewsApp.Shared.Models.Base;
 using NewsApp.Shared.Models.Dto;
@@ -11,26 +11,30 @@ namespace NewsApp.UI.Service;
 
 public class UserService
 {
-    private readonly ILocalStorageService _localStorage;
+    private readonly ProtectedSessionStorage _sessionStorage;
     private readonly HttpClient _httpClient;
-    private readonly ITokenProvider _tokenProvider;
+    private readonly ITokenService _tokenService;
 
     
-    public UserService(ILocalStorageService localStorage,HttpClient httpClient, ITokenProvider tokenProvider)
+    public UserService(ProtectedSessionStorage sessionStorage,HttpClient httpClient, ITokenService tokenService)
     {
-        _tokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));
+        _tokenService = tokenService;
         _httpClient = httpClient;
-        _localStorage = localStorage;
+        _sessionStorage = sessionStorage;
     }
 
-    public async Task<Guid> GetUserId()
+    public async Task<Guid> GetUserIdAsync()
     {
-        return await _localStorage.GetItemAsync<Guid>("userId");
+        var response = await _httpClient.GetFromJsonAsync<DataApiResponseDto<UserDto>>("User/info");
+
+
+
+        return  new Guid( response.Item.Id);
     }
 
     public async Task<List<Guid>> GetUserLikes()
     {
-            var token = await _tokenProvider.GetTokenAsync();
+            var token = await _tokenService.GetTokenAsync();
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var response = await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<Guid>>("User/likes");
             return response.Items;
@@ -40,7 +44,7 @@ public class UserService
     
     public async Task<List<Guid>> GetUserBookmarks()
     {
-        var token = await _tokenProvider.GetTokenAsync();
+        var token = await _tokenService.GetTokenAsync();
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<Guid>>("User/bookmarks");
         return response.Items;
@@ -51,7 +55,7 @@ public class UserService
     
     public async Task<List<ArticleDto>> GetUserFullLikes()
     {
-        var token = await _tokenProvider.GetTokenAsync();
+        var token = await _tokenService.GetTokenAsync();
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("User/likes/full");
         return response.Items;
@@ -61,7 +65,7 @@ public class UserService
     
     public async Task<List<ArticleDto>> GetUserFullBookmarks()
     {
-        var token = await _tokenProvider.GetTokenAsync();
+        var token = await _tokenService.GetTokenAsync();
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<ArticleDto>>("User/bookmarks/full");
         return response.Items ;
@@ -73,7 +77,7 @@ public class UserService
 
     public async Task<bool> UpdateLikes(UpdateDto updateDto)
     {
-        var token = await _tokenProvider.GetTokenAsync();
+        var token = await _tokenService.GetTokenAsync();
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var response = await _httpClient.PutAsJsonAsync("User/updateLike",updateDto);
@@ -84,7 +88,7 @@ public class UserService
     
     public async Task<bool> UpdateBookmarks(UpdateDto updateDto)
     {
-        var token = await _tokenProvider.GetTokenAsync();
+        var token = await _tokenService.GetTokenAsync();
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         
         var response = await _httpClient.PutAsJsonAsync("User/updateBookmarks",updateDto);
@@ -96,7 +100,7 @@ public class UserService
     
     public async Task<UserDto> GetUserInfo()
     {
-        var token = await _tokenProvider.GetTokenAsync();
+        var token = await _tokenService.GetTokenAsync();
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         try
         {

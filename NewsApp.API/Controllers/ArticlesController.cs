@@ -7,66 +7,64 @@ using NewsApp.API.Application.Articles;
 using NewsApp.API.Application.Articles.Commands;
 using NewsApp.API.Data.Entities;
 using NewsApp.API.Services;
-using NewsApp.API.Constants;
 using NewsApp.API.Application.Category;
+using NewsApp.Shared.Constants;
 using NewsApp.Shared.Models;
 
 namespace NewsApp.API.Controllers
 {
-    
+    [ApiController]
+    [Route("api/[controller]")]
     public class ArticleController(
         IMediator mediator,
-        UserManager<User> userManager)
-        : NewsController(mediator, userManager)
+        UserManager<User> userManager,
+        AccessControlService accessControlService)
+        : ControllerBase
     {
-
-
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllArticles([FromQuery] ArticleQueryParameters parameters)
         {
             var getArticlesQuery = new GetArticlesQuery { Parameters = parameters };
-            return Ok(await _mediator.Send(getArticlesQuery));
+            return Ok(await mediator.Send(getArticlesQuery));
         }
 
         [HttpGet("categories")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetCategories()
         {
-            var categories = await _mediator.Send(new GetCategoryQuery());
+            var categories = await mediator.Send(new GetCategoryQuery());
             return Ok(categories);
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllArticleById(Guid id)
         {
             var getArticleByIdQuery = new GetArticleByIdQuery(id);
-
-            return Ok(await _mediator.Send(getArticleByIdQuery));
+            return Ok(await mediator.Send(getArticleByIdQuery));
         }
 
         [HttpGet("popular")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetTopNews()
         {
-            return Ok(await _mediator.Send(new GetPopularArticlesRequest()));
+            return Ok(await mediator.Send(new GetPopularArticlesRequest()));
         }
-
-
-
-        
         
         [HttpPost]
-        [Authorize] 
+        [Authorize(Policy = "Premium")]
         public async Task<IActionResult> CreateArticle([FromBody] CreateArticleCommand command)
         {
-            var result = await _mediator.Send(command);
+            var result = await mediator.Send(command);
             return Ok(result);
-            
         }
         
         [HttpPut]
-        [Authorize]
+        [Authorize(Policy = "Premium")]
         public async Task<IActionResult> UpdateArticles([FromBody] UpdateArticleCommand command)
         {
-            if (await GetCurrentUser() is var user && user == null || string.IsNullOrEmpty(user.Id))
+            if (await accessControlService.GetCurrentUser() is var user && user == null || string.IsNullOrEmpty(user.Id))
             {
                 return BadRequest("Failed to get current user.");
             }
@@ -76,15 +74,15 @@ namespace NewsApp.API.Controllers
                 return Unauthorized("Only admins and article authors can update articles.");
             }
             
-            var result = await _mediator.Send(command);
+            var result = await mediator.Send(command);
             return Ok(result);
         }
 
-        [HttpDelete("{id:guid}/{userId:guid}")]
-        [Authorize]
+        [HttpDelete("{id:guid}/{userId}")]
+        [Authorize(Policy = "Premium")]
         public async Task<IActionResult> DeleteArticles([FromRoute] Guid id, string userId)
         {
-            if (await GetCurrentUser() is var user && user == null || string.IsNullOrEmpty(user.Id))
+            if (await accessControlService.GetCurrentUser() is var user && user == null || string.IsNullOrEmpty(user.Id))
             {
                 return BadRequest("Failed to get current user.");
             }
@@ -95,25 +93,7 @@ namespace NewsApp.API.Controllers
             }
             
             var deleteCategoryQuery = new DeleteArticleQuery(id);
-            return Ok(await _mediator.Send(deleteCategoryQuery));
+            return Ok(await mediator.Send(deleteCategoryQuery));
         }
-        
-        
-        
-/*
-        [Authorize(Roles = UserRoles.Admin)]
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteArticle(Guid id)
-        {
-            // ...
-        }
-
-        [Authorize(Roles = $"{UserRoles.Premium},{UserRoles.Admin}")]
-        [HttpGet("premium")]
-        public async Task<IActionResult> GetPremiumArticles()
-        {
-            // ...
-        }
-*/
     }
 }

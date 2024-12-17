@@ -8,6 +8,7 @@
 @rendermode InteractiveServer
 @inject IDialogService DialogService
 @inject CommentService CommentService
+@inject UserService UserService
 @inject  AricleService AricleService
 
 <MudContainer MaxWidth="MaxWidth.Medium">
@@ -29,6 +30,18 @@
                 <a href="@article.SourceUrl" class="article-source">BBC News</a>
 
             }
+
+            <div class="article-header">
+                @if (canEdit)
+                {
+                <button class="btn btn-primary" @onclick="NavigateToEdit">
+                    <i class="oi oi-pencil"></i>
+                    Edit
+                </button>
+                }
+            </div>
+
+            
             <h1 class="article-header">@article.Title</h1>
             <p class="article-content">@article.Content</p>
             <div class="article-controls">
@@ -205,12 +218,13 @@
     private string _newComment = string.Empty;
     private bool isAuthenticated = false;
     private Guid UserId;
+    private bool canEdit;
+    private bool isAdmin;
+    private bool isPremium;
 
-    protected override async Task OnInitializedAsync()
-    {
-        Console.WriteLine($"Page is loading... Article ID: {Id}");
-        await FetchArticleDetails();
-    }
+
+   
+    
 
     private async Task FetchArticleDetails()
     {
@@ -232,9 +246,21 @@
         {
             isAuthenticated = await AuthService.IsUserAuthenticatedAsync();
 
-            UserId = await AuthService.GetUserId();
+            UserId =  await UserService.GetUserIdAsync();
 
-            Console.WriteLine(UserId);
+            await FetchArticleDetails();
+            
+            
+            if (article != null)
+            {
+                isAdmin = await AuthService.IsInRoleAsync("Admin");
+                isPremium = await AuthService.IsInRoleAsync("Premium");
+            
+                // Показываем кнопку редактирования если:
+                // 1. Пользователь админ ИЛИ
+                // 2. Пользователь автор статьи И имеет Premium подписку
+                canEdit = isAdmin || (isPremium && article.AuthorId == UserId);
+            }
 
 
             StateHasChanged();
@@ -290,6 +316,12 @@
     {
         return userId == UserId ? "dialog-item user-1" : "dialog-item user-2";
     }
+    
+    private void NavigateToEdit()
+    {
+        Navigation.NavigateTo($"/articles/edit/{Id}");
+    }
+
 
     public async Task OpenDialog()
     {

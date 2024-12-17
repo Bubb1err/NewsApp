@@ -4,6 +4,7 @@ using Analytics.API.Application.Authentication.Register;
 using Ardalis.GuardClauses;
 using Chatty.Shared.Exceptions;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NewsApp.API.Application.Authentication;
@@ -12,22 +13,25 @@ using NewsApp.API.Application.Authentication.Register;
 using NewsApp.API.Application.Authentication.UpdateUser;
 using NewsApp.API.Data.Entities;
 using NewsApp.API.Services;
+using NewsApp.Shared.Constants;
 using NewsApp.Shared.Models.Base;
 using NewsApp.Shared.Models.Dto.User;
 
 namespace NewsApp.API.Controllers;
 
+[ApiController]
+[Route("api/[controller]")]
 public class AuthenticationController(
-    IMediator mediator,
-    UserManager<User> userManager,
+    IMediator _mediator,
+    UserManager<User> _userManager,
     AccessControlService accessControl)
-    : NewsController(mediator, userManager)
+    : ControllerBase
 {
+    
     [HttpPost("register")]
+    [AllowAnonymous]
     public async Task<IActionResult> Register([FromBody] RegisterCommand registerCommand)
     {
-        
-        
         var user = await _mediator.Send(registerCommand);
 
         var accountSeed = new NewAccountSeedCommand(user.Item.Id);
@@ -37,6 +41,7 @@ public class AuthenticationController(
     }
 
     [HttpPost("login")]
+    [AllowAnonymous]
     public async Task<ActionResult<DataApiResponseDto<AuthenticationResponseDto>>> Login(
         [FromBody] LoginCommand credential)
     {
@@ -60,7 +65,6 @@ public class AuthenticationController(
 
         var currentUser = userClaims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
         
-        
         return Ok(new DataApiResponseDto<AuthenticationResponseDto>
         {
             Item = new AuthenticationResponseDto
@@ -72,6 +76,7 @@ public class AuthenticationController(
     }
     
     [HttpPost("changeUserPassword")]
+    [Authorize(Policy = "Default")]
     public async Task<IActionResult> ChangeUserPassword([FromBody] ChangeUserPasswordRequestCommand changePasswordRequestCommand)
     {
         if (await GetCurrentUser() is var user && user == null || string.IsNullOrEmpty(user.Id))
@@ -85,7 +90,6 @@ public class AuthenticationController(
         return Ok(new ApiResponseDto());
     }
    
-    
     protected async Task<User?> GetCurrentUser()
     {
         if (User.Identity.IsAuthenticated == false)
@@ -107,31 +111,4 @@ public class AuthenticationController(
         Guard.Against.Null(user, nameof(user));
         return user;
     }
-    
-    /*[HttpPost("logout")]
-    public async Task<IActionResult> Logout()
-    {
-        // Simulate the logout process
-        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-
-        if (userIdClaim == null)
-        {
-            return Unauthorized(new { Message = "No active user session found." });
-        }
-
-        var userId = new Guid(userIdClaim.Value);
-
-        // Perform necessary cleanup here
-        // For example, if using a token blacklist, add the token to the blacklist.
-
-        // Optionally, invalidate any session or refresh tokens
-        await accessControl. InvalidateUserTokensAsync(userId);
-
-        // Notify the client to remove the token
-        return Ok(new { Message = "User has been logged out successfully." });
-    }
-    */
-
-   
-
 }

@@ -638,7 +638,7 @@
 
         try
         {
-            var userId = await UserService.GetUserId();
+            var userId = await UserService.GetUserIdAsync();
             var updateDto = new UpdateDto
             {
                 userId = userId.ToString(),
@@ -673,7 +673,7 @@
 
         try
         {
-            var userId = await UserService.GetUserId();
+            var userId = await UserService.GetUserIdAsync();
             var updateDto = new UpdateDto
             {
                 userId = userId.ToString(),

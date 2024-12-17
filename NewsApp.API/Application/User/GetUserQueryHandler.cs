@@ -31,7 +31,7 @@ internal sealed class GetUserQueryHandler : IRequestHandler<GetUserQuery, DataAp
 
         return new DataApiResponseDto<UserDto>
         {
-            Item = userDto,
+            Item =  userDto,
         };
     }
 }

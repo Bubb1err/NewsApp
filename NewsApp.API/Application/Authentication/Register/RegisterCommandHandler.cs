@@ -4,9 +4,9 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using NewsApp.API.Data.Entities;
 using NewsApp.API.Data.Repository.Base;
+using NewsApp.Shared.Constants;
 using NewsApp.Shared.Models.Base;
 using NewsApp.Shared.Models.Dto.User;
-using NewsApp.API.Constants;
 
 namespace NewsApp.API.Application.Authentication.Register;
 
