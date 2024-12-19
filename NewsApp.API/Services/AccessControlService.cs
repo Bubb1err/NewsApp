@@ -120,6 +120,25 @@ public class AccessControlService
         return claims;
     }
 
+    
+    public async Task<List<Claim>> GetUserById(string Id)
+    {
+        var user = await _userManager.FindByIdAsync(Id);
+        if (user == null) return null;
+
+        
+        // Создаем базовые claims
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Name, user.Name ?? ""),
+            new(ClaimTypes.NameIdentifier, user.Id),
+            new(JwtRegisteredClaimNames.Sub, user.Id),
+        };
+
+        return claims;
+    }
+
    
 
     private async Task<string?> GetHighestRoleAsync(IEnumerable<string> roles)

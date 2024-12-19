@@ -101,16 +101,17 @@ public class AricleService
         }
     }
 
-    public async Task<bool> CreateArticleAsync(ArticleDto command)
+    public async Task<bool> CreateArticleAsync(CreateArticleDto command)
     {
         try
         {
+            
             var token = await _tokenProvider.GetTokenAsync();
          
             
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var response = await _httpClient.PostAsJsonAsync("Article", command);
-            Console.WriteLine(response.StatusCode);
+            Console.WriteLine("TEST2");
             return response.IsSuccessStatusCode;
             
             

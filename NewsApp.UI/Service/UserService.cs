@@ -181,14 +181,19 @@ public class UserService
 
     public async Task<bool> UpdateUserRole(string userId, string role)
     {
+        Console.WriteLine("UPDATE USER ROLE");
+        var command = new UpdateRoleDto();
+        command.UserId = userId;
+        command.NewRole = role;
         try
         {
+            
             var token = await _tokenService.GetTokenAsync();
             _httpClient.DefaultRequestHeaders.Authorization = 
                 new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await _httpClient.PutAsJsonAsync($"api/users/{userId}/role", 
-                new { Role = role });
+            var response = await _httpClient.PutAsJsonAsync($"User/role", command);
+         
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)

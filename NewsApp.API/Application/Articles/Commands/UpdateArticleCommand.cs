@@ -14,7 +14,9 @@ public class UpdateArticleCommand : IRequest<DataApiResponseDto<bool>>
     public Guid ArticleId { get; set; }
     
     public string Title { get; set; }
-    
+    public Guid? CategoryId { get; set; }
+    public bool IsPremium { get; set; }
+
     public string Content { get; set; }
     
 }
@@ -46,6 +48,8 @@ public class UpdateArticleCommandHandler : IRequestHandler<UpdateArticleCommand,
         
         article.Content = request.Content;
         article.Title = request.Title;
+        article.CategoryId = request.CategoryId;
+        article.IsPremium = request.IsPremium;
             
         _unitOfWork.GetRepository<Article>().Update(article);
 

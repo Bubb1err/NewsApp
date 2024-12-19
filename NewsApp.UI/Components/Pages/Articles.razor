@@ -101,9 +101,15 @@
                                 </div>
                                 <div class="article-header" @onclick="() => NavigateToArticleDetail(article.Id)">
                                     <h2>@article.Title</h2>
+
                                     <div class="article-meta">
                                         <span class="date">@article.PublishDate.ToString("MMM dd, yyyy")</span>
                                         <span class="author">@article.Author</span>
+                                        @if (article.IsPremium)
+                                        {
+                                        <span style="font-size: 16px; color: gold;">★</span>
+
+                                        }
                                         @if (article.Category != null)
                                         {
                                             <span class="category-tag">@article.Category.Name</span>

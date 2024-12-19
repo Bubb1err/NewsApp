@@ -8,10 +8,10 @@ using NewsApp.Shared.Models.Dto;
 
 namespace NewsApp.API.Application.Category;
 
-public class DeleteCategoryQuery(Guid Id) :IRequest<DataApiResponseDto<bool>>
+public class DeleteCategoryQuery(Guid _Id) :IRequest<DataApiResponseDto<bool>>
 {
-    public Guid Id { get; set; }
-    
+    public Guid Id { get; set; } = _Id;
+
 }
 
 internal sealed class DeleteCategoryQueryHandler : IRequestHandler<DeleteCategoryQuery, DataApiResponseDto<bool>>

@@ -1,11 +1,7 @@
-using MediatR;
-using NewsApp.Shared.Models.Base;
-using NewsApp.Shared.Models.Dto;
+﻿namespace NewsApp.Shared.Models.Dto;
 
-namespace NewsApp.API.Application.Articles.Commands;
-
-public record CreateArticleCommand : IRequest<DataApiResponseDto<ArticleDto>>
-{ 
+public class CreateArticleDto
+{
     public string Title { get; set; }
     
     public Guid? CategoryId { get; set; }
@@ -16,6 +12,4 @@ public record CreateArticleCommand : IRequest<DataApiResponseDto<ArticleDto>>
 
     public string Content { get; set; }
     public bool IsPremium { get; set; }
-
-
-} 
+}

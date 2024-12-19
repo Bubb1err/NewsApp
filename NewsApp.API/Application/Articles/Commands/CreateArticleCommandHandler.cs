@@ -30,7 +30,9 @@ internal sealed class CreateArticleCommandHandler : IRequestHandler<CreateArticl
             Content = request.Content,
             Author = request.Author,
             AuthorId = request.AuthorId,
+            CategoryId = request.CategoryId,
             PublishDate = DateTime.UtcNow,
+            IsPremium = request.IsPremium,
             Id = id,
             SourceUrl = "https://localhost:7220/" + id,
             

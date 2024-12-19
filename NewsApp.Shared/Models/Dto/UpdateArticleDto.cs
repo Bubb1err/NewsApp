@@ -7,4 +7,5 @@ public class UpdateArticleDto
     public string Content { get; set; } = string.Empty;
     public Guid CategoryId { get; set; }
     public string? UserId { get; set; }
+    public bool IsPremium { get; set; }
 } 

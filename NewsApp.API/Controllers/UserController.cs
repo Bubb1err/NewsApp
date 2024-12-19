@@ -145,4 +145,34 @@ public class UserController : ControllerBase
         var getAllQuery = new GetAllUsersQuery();
         return Ok(await _mediator.Send(getAllQuery));
     }
+
+    
+
+    [HttpPut("role")]
+    [Authorize(Policy = "Admin")] // Только админы могут менять роли
+    public async Task<IActionResult> UpdateUserRole([FromBody] UpdateUserRoleCommand command)
+    {
+        try 
+        {
+            // Проверяем существование пользователя
+            var user = await _accessControlService.GetUserById(command.UserId);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            // Проверяем валидность роли
+            if (!UserRoles.All.Contains(command.NewRole))
+            {
+                return BadRequest("Invalid role specified");
+            }
+
+            return Ok(await _mediator.Send(command));
+
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
 }
