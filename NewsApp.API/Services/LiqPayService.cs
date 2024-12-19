@@ -12,6 +12,9 @@ public class LiqPayService
     private readonly  AccessControlService _accessControl;
     private readonly string _privateKey;
     private readonly HttpClient _httpClient;
+    private readonly string ngrokUrl ; // Замените на ваш URL от ngrok
+    private readonly string ngrokUrl2 ; // Замените на ваш URL от ngrok
+
     private readonly ILogger<LiqPayService> _logger;
     private const string API_URL = "https://www.liqpay.ua/api/";
 
@@ -23,6 +26,8 @@ public class LiqPayService
     {
         _publicKey = configuration["LiqPay:PublicKey"];
         _privateKey = configuration["LiqPay:PrivateKey"];
+        ngrokUrl = configuration["NgRok:ngrokUrl"];
+        ngrokUrl2 = configuration["NgRok:ngrokUrl2"];
         _httpClient = httpClient;
         _accessControl = accessControl;
         _logger = logger;
@@ -30,8 +35,7 @@ public class LiqPayService
 
     public async Task<string> CreateSubscriptionAsync(string email, string id, string redirectUrl)
     {
-        var ngrokUrl = "https://62b4-91-202-130-54.ngrok-free.app"; // Замените на ваш URL от ngrok
-
+       
         try
         {
             var subscriptionData = new Dictionary<string, string>
@@ -48,7 +52,7 @@ public class LiqPayService
                 { "subscribe", "1" },
                 { "subscribe_date_start", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") },
                 { "subscribe_periodicity", "month" },
-                { "result_url", redirectUrl }, // URL для перенаправления после оплаты
+                { "result_url", $"{ngrokUrl2}/news" }, // URL для перенаправления после оплаты
                 { "server_url", $"{ngrokUrl}/api/Subscription/callback" } // URL для получения уведомлений
             };
 
