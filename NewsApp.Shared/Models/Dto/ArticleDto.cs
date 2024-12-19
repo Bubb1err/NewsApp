@@ -8,7 +8,7 @@ namespace NewsApp.Shared.Models.Dto
         public string Title { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
         
-        public Guid AuthorId { get; set; }
+        public string AuthorId { get; set; }
         public string Author { get; set; } = string.Empty;
         public DateTime PublishDate { get; set; }
         public string SourceUrl { get; set; } = string.Empty;

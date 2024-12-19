@@ -55,10 +55,12 @@ public class SubscriptionController : ControllerBase
             var checkoutUrl = await _liqPayService.CreateSubscriptionAsync(
                 user.Email,
                 user.Id,
-                request.Description
+                request.url
             );
+            var liqPayResponse = new LiqPayResponse();
+            liqPayResponse.CheckoutUrl = checkoutUrl;
 
-            return Ok(new { checkoutUrl });
+            return Ok(liqPayResponse);
         }
         catch (Exception ex)
         {

@@ -106,19 +106,14 @@ public class AricleService
         try
         {
             var token = await _tokenProvider.GetTokenAsync();
-            var request = new HttpRequestMessage(HttpMethod.Post, "Article");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            request.Content = JsonContent.Create(command);
+         
             
-            var response = await _httpClient.SendAsync(request);
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"Error creating article: {response.StatusCode}, {error}");
-                return false;
-            }
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var response = await _httpClient.PostAsJsonAsync("Article", command);
+            Console.WriteLine(response.StatusCode);
+            return response.IsSuccessStatusCode;
             
-            return true;
+            
         }
         catch (Exception ex)
         {

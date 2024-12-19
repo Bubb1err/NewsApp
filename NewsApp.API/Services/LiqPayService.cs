@@ -28,7 +28,7 @@ public class LiqPayService
         _logger = logger;
     }
 
-    public async Task<string> CreateSubscriptionAsync(string email, string id, string description)
+    public async Task<string> CreateSubscriptionAsync(string email, string id, string redirectUrl)
     {
         var ngrokUrl = "https://62b4-91-202-130-54.ngrok-free.app"; // Замените на ваш URL от ngrok
 
@@ -41,14 +41,14 @@ public class LiqPayService
                 { "action", "subscribe" },
                 { "amount", "5"},
                 { "currency", "USD" },
-                { "description", description },
+                { "description", "NewsPremium" },
                 { "order_id", Guid.NewGuid().ToString("N") },
                 { "email", email },
                 {"customer" , id},
                 { "subscribe", "1" },
                 { "subscribe_date_start", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") },
                 { "subscribe_periodicity", "month" },
-                { "result_url", "https://www.youtube.com/" }, // URL для перенаправления после оплаты
+                { "result_url", redirectUrl }, // URL для перенаправления после оплаты
                 { "server_url", $"{ngrokUrl}/api/Subscription/callback" } // URL для получения уведомлений
             };
 

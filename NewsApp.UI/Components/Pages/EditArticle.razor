@@ -81,7 +81,7 @@
     private UpdateArticleDto? article;
     private List<CategoryDto>? categories;
     private string? userId;
-    private bool hasEditAccess;
+    private bool hasEditAccess= true;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -102,9 +102,7 @@
             if (article != null && userId!= null)
             {
                 
-                var role = await AuthService.AccessInfo();
-                
-                hasEditAccess = (role=="Admin") || (role=="Premium" && article.UserId == userId);
+
                 if (!hasEditAccess)
                 {
                     NavigateToList();
@@ -127,7 +125,8 @@
             {
                 ArticleId = articleDto.Id,
                 Title = articleDto.Title,
-                Content = articleDto.Content
+                Content = articleDto.Content,
+                UserId = articleDto.AuthorId
             };
         }
 

@@ -1,10 +1,13 @@
 using System.Net.Http.Headers;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.JSInterop;
 using MudBlazor;
+using NewsApp.Shared.Models;
 using NewsApp.Shared.Models.Base;
-using NewsApp.Shared.Models.Dto;
 using NewsApp.Shared.Models.Dto.User;
+using ArticleDto = NewsApp.Shared.Models.Dto.ArticleDto;
 
 namespace NewsApp.UI.Service;
 
@@ -13,13 +16,17 @@ public class UserService
 {
     private readonly ProtectedSessionStorage _sessionStorage;
     private readonly HttpClient _httpClient;
+    private readonly IJSRuntime _jsRuntime;
+    private readonly NavigationManager _navigationManager;
     private readonly ITokenService _tokenService;
 
     
-    public UserService(ProtectedSessionStorage sessionStorage,HttpClient httpClient, ITokenService tokenService)
+    public UserService(ProtectedSessionStorage sessionStorage,NavigationManager navigationManager ,HttpClient httpClient, ITokenService tokenService,  IJSRuntime jsRuntime)
     {
         _tokenService = tokenService;
         _httpClient = httpClient;
+        _jsRuntime = jsRuntime;
+        _navigationManager = navigationManager;
         _sessionStorage = sessionStorage;
     }
 
@@ -114,6 +121,47 @@ public class UserService
        
         
     }
+
+    public async Task GetPremium( string url)
+    {
+        var SubscribrionDto = new SubscriptionRequest();
+        
+        SubscribrionDto.url = url;
+        
+        var token = await _tokenService.GetTokenAsync();
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync("Subscription/create", SubscribrionDto);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Десериализуем ответ в объект
+                var checkoutResponse = await response.Content.ReadFromJsonAsync<LiqPayResponse>();
+                
+                if (!string.IsNullOrEmpty(checkoutResponse?.CheckoutUrl))
+                {
+                    _navigationManager.NavigateTo(checkoutResponse.CheckoutUrl, true);
+                }
+                else
+                {
+                    throw new Exception("Checkout URL is empty");
+                }
+            }
+            else
+            {
+                throw new Exception($"Failed to get checkout URL. Status: {response.StatusCode}");
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Error getting premium subscription: {e.Message}");
+            throw;
+        }
+
+
+    }
+
 
 
 }

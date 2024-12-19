@@ -1,9 +1,10 @@
 @page "/article/{id:guid}"
-@using NewsApp.Shared.Models.Dto
 @using MudBlazor
+@using NewsApp.Shared.Models
 @using NewsApp.Shared.Models.Base
 @using NewsApp.Shared.Models.Dto.Coment
 @using NewsApp.UI.Service
+@using ArticleDto = NewsApp.Shared.Models.Dto.ArticleDto
 @inject HttpClient Http
 @rendermode InteractiveServer
 @inject IDialogService DialogService
@@ -325,11 +326,16 @@
             {
                 
                 var role = await AuthService.AccessInfo();
-                IsPremiumBlocked = (role!="Admin" || role!="Premium") && article.IsPremium;
-                
-                canEdit = (role=="Admin") || (role=="Premium" && article.AuthorId == UserId);
-                Console.WriteLine("TESTTESTTESTTEST");
+
                 Console.WriteLine(role);
+                
+                IsPremiumBlocked = (role!="Admin" && role!="Premium") && article.IsPremium;
+                
+                canEdit = (role=="Admin") || (role=="Premium" && new Guid( article.AuthorId) ==  UserId);
+                Console.WriteLine(article.AuthorId);
+                Console.WriteLine(UserId);
+                Console.WriteLine(canEdit);
+                
             }
 
 
@@ -392,9 +398,10 @@
         Navigation.NavigateTo($"/articles/edit/{Id}");
     }
     
-    private void NavigateToPremium()
+    private async Task NavigateToPremium()
     {
-        Navigation.NavigateTo("/premium-subscription");
+        Console.WriteLine("PREMIUM");
+         await UserService.GetPremium(Uri.EscapeDataString(Navigation.Uri));
     }
 
 
