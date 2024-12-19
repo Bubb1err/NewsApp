@@ -20,6 +20,25 @@
     }
     else
     {
+        
+                @if (IsPremiumBlocked)
+                {
+                    <div class="premium-overlay">
+                        <div class="overlay-content">
+                            <i class="fas fa-crown premium-icon"></i>
+                            <h2>Premium Content</h2>
+                            <p>This article is available only for Premium subscribers</p>
+                            <button class="premium-button" @onclick="NavigateToPremium">
+                                Get Premium Access
+                            </button>
+                        </div>
+                    </div>
+                }
+            
+       
+        
+        <div class="article-content @(IsPremiumBlocked ? "blur-content" : "")">
+        
         <div class="article-block">
             @if (article.Author != null && !string.IsNullOrWhiteSpace(article.Author))
             {
@@ -34,10 +53,10 @@
             <div class="article-header">
                 @if (canEdit)
                 {
-                <button class="btn btn-primary" @onclick="NavigateToEdit">
-                    <i class="oi oi-pencil"></i>
-                    Edit
-                </button>
+                    
+                    <button class="btn btn-primary" @onclick="NavigateToEdit">
+                        <i class="oi oi-pencil"></i>
+                    </button>
                 }
             </div>
 
@@ -51,6 +70,8 @@
                 <p>@article.PublishDate.ToShortDateString()</p>
             </div>
         </div>
+        </div>
+
     }
 
 </MudContainer>
@@ -180,6 +201,53 @@
         border-radius: 20px;
     }
 
+    .blur-content {
+        filter: blur(4px);
+        pointer-events: none;
+        user-select: none;
+    }
+
+    .premium-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .overlay-content {
+        text-align: center;
+        color: white;
+        padding: 2rem;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.8);
+    }
+
+    .premium-icon {
+        font-size: 3rem;
+        color: gold;
+        margin-bottom: 1rem;
+    }
+
+    .premium-button {
+        margin-top: 1rem;
+        padding: 0.75rem 1.5rem;
+        background: #FF8000;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .premium-button:hover {
+        background: #e67300;
+    }
     .send-button {
         color: #000;
         border: none;
@@ -218,9 +286,8 @@
     private string _newComment = string.Empty;
     private bool isAuthenticated = false;
     private Guid UserId;
-    private bool canEdit;
-    private bool isAdmin;
-    private bool isPremium;
+    private bool IsPremiumBlocked = false;
+    private bool canEdit = false;
 
 
    
@@ -246,20 +313,23 @@
         {
             isAuthenticated = await AuthService.IsUserAuthenticatedAsync();
 
-            UserId =  await UserService.GetUserIdAsync();
+            if (isAuthenticated)
+            {
+                UserId = await UserService.GetUserIdAsync();
+            }
 
             await FetchArticleDetails();
             
             
-            if (article != null)
+            if (article != null && UserId!= null)
             {
-                isAdmin = await AuthService.IsInRoleAsync("Admin");
-                isPremium = await AuthService.IsInRoleAsync("Premium");
-            
-                // Показываем кнопку редактирования если:
-                // 1. Пользователь админ ИЛИ
-                // 2. Пользователь автор статьи И имеет Premium подписку
-                canEdit = isAdmin || (isPremium && article.AuthorId == UserId);
+                
+                var role = await AuthService.AccessInfo();
+                IsPremiumBlocked = (role!="Admin" || role!="Premium") && article.IsPremium;
+                
+                canEdit = (role=="Admin") || (role=="Premium" && article.AuthorId == UserId);
+                Console.WriteLine("TESTTESTTESTTEST");
+                Console.WriteLine(role);
             }
 
 
@@ -320,6 +390,11 @@
     private void NavigateToEdit()
     {
         Navigation.NavigateTo($"/articles/edit/{Id}");
+    }
+    
+    private void NavigateToPremium()
+    {
+        Navigation.NavigateTo("/premium-subscription");
     }
 
 

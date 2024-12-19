@@ -18,6 +18,7 @@ public class MappingProfile : Profile
                     Name = src.Category.Name 
                 } : null));
 
+
         CreateMap<Comment, CommentDto>();
         CreateMap<User, UserDto>();
         CreateMap<Category, CategoryDto>();

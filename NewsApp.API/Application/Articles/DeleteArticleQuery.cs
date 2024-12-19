@@ -5,10 +5,10 @@ using NewsApp.Shared.Models.Base;
 
 namespace NewsApp.API.Application.Articles;
 
-public class DeleteArticleQuery(Guid id) : IRequest<DataApiResponseDto<bool>>
+public class DeleteArticleQuery(Guid _id) : IRequest<DataApiResponseDto<bool>>
 {
-    public Guid Id { get; set; }
-    
+    public Guid Id { get; set; } = _id;
+
 }
 
 internal sealed class DeleteArticleQueryHandler : IRequestHandler<DeleteArticleQuery, DataApiResponseDto<bool>>
@@ -26,8 +26,9 @@ internal sealed class DeleteArticleQueryHandler : IRequestHandler<DeleteArticleQ
     {
         var article = await _unitOfWork.GetRepository<Article>()
             .GetFirstOrDefaultAsync(c => c.Id == request.Id);
-        _unitOfWork
-            .GetRepository<Article>().Delete(article);
+
+        Console.WriteLine(article.Title);
+        _unitOfWork.GetRepository<Article>().Delete(article);
 
 
         await _unitOfWork.SaveAsync();

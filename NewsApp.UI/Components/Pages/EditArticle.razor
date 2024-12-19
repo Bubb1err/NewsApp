@@ -61,14 +61,6 @@
                     </InputSelect>
                 </div>
 
-                <div class="form-group">
-                    <label for="imageUrl">Image URL</label>
-                    <InputText id="imageUrl" 
-                              class="form-control" 
-                              @bind-Value="article.ImageUrl" 
-                              placeholder="Enter image URL"/>
-                </div>
-
                 <button type="submit" class="btn btn-primary">
                     <i class="oi oi-check"></i>
                     Save Changes
@@ -103,20 +95,23 @@
             }
 
             userId =  UserService.GetUserIdAsync().ToString();
-            var isAdmin = await AuthService.IsInRoleAsync("Admin");
-            var isPremium = await AuthService.IsInRoleAsync("Premium");
-            
             await LoadData();
-
-            if (article != null)
+            
+            
+            
+            if (article != null && userId!= null)
             {
-                hasEditAccess = isAdmin || (isPremium && article.UserId == userId);
+                
+                var role = await AuthService.AccessInfo();
+                
+                hasEditAccess = (role=="Admin") || (role=="Premium" && article.UserId == userId);
                 if (!hasEditAccess)
                 {
                     NavigateToList();
                     return;
                 }
             }
+            
 
             StateHasChanged();
         }
@@ -125,14 +120,14 @@
     private async Task LoadData()
     {
         var articleDto = await ArticleService.GetAArticleByIdAsync(Id);
+        Console.WriteLine(articleDto);
         if (articleDto != null)
         {
             article = new UpdateArticleDto
             {
-                Id = articleDto.Id,
+                ArticleId = articleDto.Id,
                 Title = articleDto.Title,
-                Content = articleDto.Content,
-                UserId = userId
+                Content = articleDto.Content
             };
         }
 
@@ -142,7 +137,8 @@
     private async Task UpdateArticleAsync()
     {
         if (article == null) return;
-
+        Console.WriteLine(article.ArticleId);
+        Console.WriteLine(article.Title);
         var success = await ArticleService.UpdateArticleAsync(article);
         if (success)
         {
@@ -152,9 +148,12 @@
 
     private async Task DeleteArticleAsync()
     {
+
+        Console.WriteLine("Article will be deleted");
         if (article == null || userId == null) return;
         
-        var success = await ArticleService.DeleteArticleAsync(Id, userId);
+        var success = await ArticleService.DeleteArticleAsync(Id);
+        Console.WriteLine(success);
         if (success)
         {
             NavigateToList();
@@ -168,7 +167,7 @@
 
     private void NavigateToDetails()
     {
-        Navigation.NavigateTo($"/articles/{Id}");
+        Navigation.NavigateTo($"/article/{Id}");
     }
 
     private void NavigateToList()

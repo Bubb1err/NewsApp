@@ -45,8 +45,10 @@ public class AuthenticationController(
     public async Task<ActionResult<DataApiResponseDto<AuthenticationResponseDto>>> Login(
         [FromBody] LoginCommand credential)
     {
+        
+        
         var response = new DataApiResponseDto<AuthenticationResponseDto>();
-
+        
         if (!ModelState.IsValid)
         {
             return BadRequest(response);

@@ -8,9 +8,8 @@ using NewsApp.Shared.Models.Base;
 
 namespace NewsApp.API.Application.Articles.Commands;
 
-public class UpdateArticleCommand : IRequest<DataApiResponseDto<ArticleDto>>
+public class UpdateArticleCommand : IRequest<DataApiResponseDto<bool>>
 {
-    public string UserId { get; set; }
     
     public Guid ArticleId { get; set; }
     
@@ -20,7 +19,7 @@ public class UpdateArticleCommand : IRequest<DataApiResponseDto<ArticleDto>>
     
 }
 
-public class UpdateArticleCommandHandler : IRequestHandler<UpdateArticleCommand, DataApiResponseDto<ArticleDto>>
+public class UpdateArticleCommandHandler : IRequestHandler<UpdateArticleCommand, DataApiResponseDto<bool>>
 {
     private readonly UnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
@@ -31,28 +30,32 @@ public class UpdateArticleCommandHandler : IRequestHandler<UpdateArticleCommand,
         _mapper = mapper;
     }
 
-    public async Task<DataApiResponseDto<ArticleDto>> Handle(UpdateArticleCommand request,
+    public async Task<DataApiResponseDto<bool>> Handle(UpdateArticleCommand request,
         CancellationToken cancellationToken)
     {
 
         var article = await _unitOfWork.GetRepository<Article>().GetFirstOrDefaultAsync(e => e.Id == request.ArticleId);
-
-        if (article.AuthorId == request.UserId)
+        
+        if (article == null)
         {
-            article.Update(request.Title, request.Content);
-
-            _unitOfWork.GetRepository<Article>().Update(article);
-
+            return new DataApiResponseDto<bool>
+            {
+                Message = "Article not found"
+            };
         }
+        
+        article.Content = request.Content;
+        article.Title = request.Title;
+            
+        _unitOfWork.GetRepository<Article>().Update(article);
+
 
 
         await _unitOfWork.SaveAsync();
 
-        var articleDto = _mapper.Map<ArticleDto>(article);
-
-        return new DataApiResponseDto<ArticleDto>
+        return new DataApiResponseDto<bool>
         {
-            Item = articleDto
+            Item = true
         };
 
     }

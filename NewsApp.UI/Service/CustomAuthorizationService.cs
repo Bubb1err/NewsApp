@@ -37,18 +37,15 @@ public class CustomAuthenticationService
         _logger.LogDebug("Checking user authentication status");
     
         var token = await GetJwtFromStorage();
-        
-        if (string.IsNullOrEmpty(token))
-        {
-            _logger.LogInfo("User is not authenticated - no JWT token found");
-            return false;
+
+        if (!string.IsNullOrEmpty(token))
+        {_logger.LogInfo("User authenticated");
+            return true;
         }
 
-        var authState = await _authStateProvider.GetAuthenticationStateAsync();
-        var isTemporary = authState.User.HasClaim(c => c.Type == "IsTemporary" && c.Value == "true");
-        
-        _logger.LogInfo($"User authentication status: {!isTemporary}");
-        return !isTemporary;
+        _logger.LogInfo("User is not authenticated - no JWT token found");
+        return false;
+
     }
 
     public async Task<bool> LoginAsync(LoginDto request)
@@ -130,12 +127,13 @@ public class CustomAuthenticationService
         await _tokenService.RemoveTokenAsync();
     }
 
-    public async Task<bool> IsInRoleAsync(string role)
+    
+
+    public async Task<string> AccessInfo()
     {
-        _logger.LogDebug($"Checking if user is in role: {role}");
-        var authState = await _authStateProvider.GetAuthenticationStateAsync();
-        var result = authState.User.IsInRole(role);
-        _logger.LogInfo($"User role check for {role}: {result}");
-        return result;
+        var response = await _httpClient.GetAsync("User/access-level");
+        
+        
+        return await response.Content.ReadAsStringAsync();
     }
 }

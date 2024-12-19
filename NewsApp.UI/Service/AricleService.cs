@@ -1,4 +1,5 @@
-﻿using NewsApp.Shared.Models.Base;
+﻿using System.Net;
+using NewsApp.Shared.Models.Base;
 using System.Net.Http.Headers;
 using NewsApp.Shared.Models;
 using ArticleDto = NewsApp.Shared.Models.Dto.ArticleDto;
@@ -126,24 +127,18 @@ public class AricleService
         }
     }
 
-    public async Task<ArticleDto?> GetArticleByIdAsync(Guid id)
-    {
-        try
-        {
-            return await _httpClient.GetFromJsonAsync<ArticleDto>($"Articles/{id}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error getting article: {ex.Message}");
-            return null;
-        }
-    }
+  
 
     public async Task<bool> UpdateArticleAsync(UpdateArticleDto article)
     {
         try
         {
-            var response = await _httpClient.PutAsJsonAsync("Articles", article);
+            var token = await _tokenProvider.GetTokenAsync();
+
+
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _httpClient.PutAsJsonAsync("Article", article);
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
@@ -153,12 +148,19 @@ public class AricleService
         }
     }
 
-    public async Task<bool> DeleteArticleAsync(Guid id, string userId)
+    public async Task<bool> DeleteArticleAsync(Guid id)
     {
+        Console.WriteLine(id);
         try
         {
-            var response = await _httpClient.DeleteAsync($"Articles/{id}/{userId}");
-            return response.IsSuccessStatusCode;
+            var token = await _tokenProvider.GetTokenAsync();
+
+
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _httpClient.DeleteFromJsonAsync<DataApiResponseDto<bool>>($"Article/{id}");
+            Console.WriteLine(response.Item);
+            return response.Item;
         }
         catch (Exception ex)
         {
@@ -171,7 +173,7 @@ public class AricleService
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<List<CategoryDto>>("Articles/categories") 
+            return await _httpClient.GetFromJsonAsync<List<CategoryDto>>("Article/categories") 
                    ?? new List<CategoryDto>();
         }
         catch (Exception ex)

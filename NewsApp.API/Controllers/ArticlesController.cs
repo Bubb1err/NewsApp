@@ -69,28 +69,21 @@ namespace NewsApp.API.Controllers
                 return BadRequest("Failed to get current user.");
             }
 
-            if (command.UserId != user.Id && !await userManager.IsInRoleAsync(user, UserRoles.Admin))
-            {
-                return Unauthorized("Only admins and article authors can update articles.");
-            }
+            
             
             var result = await mediator.Send(command);
             return Ok(result);
         }
 
-        [HttpDelete("{id:guid}/{userId}")]
+        [HttpDelete("{id:guid}")]
         [Authorize(Policy = "Premium")]
-        public async Task<IActionResult> DeleteArticles([FromRoute] Guid id, string userId)
+        public async Task<IActionResult> DeleteArticles([FromRoute] Guid id)
         {
             if (await accessControlService.GetCurrentUser() is var user && user == null || string.IsNullOrEmpty(user.Id))
             {
                 return BadRequest("Failed to get current user.");
             }
-
-            if (userId != user.Id && !await userManager.IsInRoleAsync(user, UserRoles.Admin))
-            {
-                return Unauthorized("Only admins and article authors can delete articles.");
-            }
+            
             
             var deleteCategoryQuery = new DeleteArticleQuery(id);
             return Ok(await mediator.Send(deleteCategoryQuery));
