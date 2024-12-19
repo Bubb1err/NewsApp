@@ -1,10 +1,12 @@
 @page "/articles/edit/{Id:guid}"
+@using NewsApp.Shared.Models.Base
 @using NewsApp.Shared.Models.Dto
 @using NewsApp.UI.Service
 @inject NavigationManager Navigation
 @inject AricleService ArticleService
 @inject CustomAuthenticationService AuthService
 @inject UserService UserService
+@inject CategoryService CategoryService
 @rendermode InteractiveServer
 
 <div class="edit-article-container">
@@ -53,7 +55,7 @@
                     <InputSelect id="category" class="form-control" @bind-Value="article.CategoryId">
                         @if (categories != null)
                         {
-                            @foreach (var category in categories)
+                            @foreach (var category in categories.Items)
                             {
                                 <option value="@category.Id">@category.Name</option>
                             }
@@ -79,7 +81,7 @@
     public Guid Id { get; set; }
 
     private UpdateArticleDto? article;
-    private List<CategoryDto>? categories;
+    private DataCollectionApiResponseDto<CategoryDto>? categories;
     private string? userId;
     private bool hasEditAccess= true;
 
@@ -118,6 +120,7 @@
     private async Task LoadData()
     {
         var articleDto = await ArticleService.GetAArticleByIdAsync(Id);
+        Console.WriteLine(articleDto.Title);
         Console.WriteLine(articleDto);
         if (articleDto != null)
         {
@@ -126,11 +129,15 @@
                 ArticleId = articleDto.Id,
                 Title = articleDto.Title,
                 Content = articleDto.Content,
-                UserId = articleDto.AuthorId
+                UserId = articleDto.AuthorId,
+                CategoryId = articleDto.Category.Id
             };
+            Console.WriteLine(article.CategoryId);
         }
 
-       // categories = await ArticleService.GetCategoriesAsync();
+        Console.WriteLine(articleDto.Category.Id);
+
+        categories = await CategoryService.GetAllCategories();
     }
 
     private async Task UpdateArticleAsync()

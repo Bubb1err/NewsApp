@@ -31,7 +31,10 @@ internal sealed class GetArticleByIdQueryHandler : IRequestHandler<GetArticleByI
             .GetRepository<Article>()
             .GetFirstOrDefaultAsync(
                  a => a.Id == request.ArticleId,
-                 query => query.Include(a => a.Comments)
+                 query => query
+                     .Include(a => a.Comments)
+                     .Include(a => a.Category)
+                   
                 
             );
 

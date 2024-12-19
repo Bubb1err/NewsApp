@@ -52,17 +52,20 @@
             }
 
             <div class="article-header">
+                <div class="article-title">
+                    <h1>@article.Title</h1>
+                </div>
                 @if (canEdit)
                 {
-                    
-                    <button class="btn btn-primary" @onclick="NavigateToEdit">
-                        <i class="oi oi-pencil"></i>
-                    </button>
+                    <div class="edit-button">
+                        <button class="btn btn-primary" @onclick="NavigateToEdit">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    </div>
                 }
             </div>
 
             
-            <h1 class="article-header">@article.Title</h1>
             <p class="article-content">@article.Content</p>
             <div class="article-controls">
                 <div>
@@ -266,6 +269,37 @@
     .custom-dialog-content h3 {
         font-size: 36px;
         font-weight: 600;
+    }
+
+    .article-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        width: 100%;
+    }
+
+    .article-title {
+        flex: 1;
+    }
+
+    .article-title h1 {
+        margin: 0;
+    }
+
+    .edit-button {
+        margin-left: 20px;
+    }
+
+    .edit-button .btn {
+        padding: 8px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .edit-button .bi {
+        font-size: 1.2rem;
     }
 </style>
 

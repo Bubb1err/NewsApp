@@ -12,7 +12,7 @@ namespace NewsApp.Shared.Models.Dto
         public string Author { get; set; } = string.Empty;
         public DateTime PublishDate { get; set; }
         public string SourceUrl { get; set; } = string.Empty;
-        public CategoryDto? Category { get; set; }
+        public CategoryDto Category { get; set; }
         public bool IsPremium { get; set; }
     }
 }

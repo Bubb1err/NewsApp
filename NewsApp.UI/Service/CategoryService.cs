@@ -7,36 +7,37 @@ namespace NewsApp.UI.Service;
 public class CategoryService
 {
     private readonly HttpClient _httpClient;
-    private readonly ITokenService _tokenProvider;
+    private readonly ITokenService _tokenService;
 
-    public CategoryService(HttpClient httpClient, ITokenService tokenProvider)
+    public CategoryService(HttpClient httpClient, ITokenService tokenService)
     {
         _httpClient = httpClient;
-        _tokenProvider = tokenProvider;
+        _tokenService = tokenService;
     }
 
-    public async Task<List<CategoryDto>> GetAllCategories()
+    public async Task<DataCollectionApiResponseDto<CategoryDto>> GetAllCategories()
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<CategoryDto>>("Category");
-            return response?.Items?.ToList() ?? new List<CategoryDto>();
+            return await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<CategoryDto>>("Category");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error fetching categories: {ex.Message}");
-            return new List<CategoryDto>();
+            Console.WriteLine($"Error getting categories: {ex.Message}");
+            return new DataCollectionApiResponseDto<CategoryDto>();
         }
     }
 
-    public async Task<bool> CreateCategory(string categoryName)
+    public async Task<bool> CreateCategory(CategoryDto category)
     {
         try
         {
-            var token = await _tokenProvider.GetTokenAsync();
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var token = await _tokenService.GetTokenAsync();
+            _httpClient.DefaultRequestHeaders.Authorization = 
+                new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await _httpClient.PostAsJsonAsync("Category", new { Name = categoryName });
+            var response = await _httpClient.PostAsJsonAsync("Category", category);
+            Console.WriteLine(response.StatusCode);
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
@@ -46,29 +47,13 @@ public class CategoryService
         }
     }
 
-    public async Task<bool> UpdateCategory(Guid categoryId, string newName)
-    {
-        try
-        {
-            var token = await _tokenProvider.GetTokenAsync();
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-            var response = await _httpClient.PutAsJsonAsync($"Category/{categoryId}", new { Name = newName });
-            return response.IsSuccessStatusCode;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error updating category: {ex.Message}");
-            return false;
-        }
-    }
-
     public async Task<bool> DeleteCategory(Guid categoryId)
     {
         try
         {
-            var token = await _tokenProvider.GetTokenAsync();
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var token = await _tokenService.GetTokenAsync();
+            _httpClient.DefaultRequestHeaders.Authorization = 
+                new AuthenticationHeaderValue("Bearer", token);
 
             var response = await _httpClient.DeleteAsync($"Category/{categoryId}");
             return response.IsSuccessStatusCode;
@@ -77,20 +62,6 @@ public class CategoryService
         {
             Console.WriteLine($"Error deleting category: {ex.Message}");
             return false;
-        }
-    }
-
-    public async Task<CategoryDto?> GetCategoryById(Guid categoryId)
-    {
-        try
-        {
-            var response = await _httpClient.GetFromJsonAsync<DataApiResponseDto<CategoryDto>>($"Category/{categoryId}");
-            return response?.Item;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error fetching category: {ex.Message}");
-            return null;
         }
     }
 }

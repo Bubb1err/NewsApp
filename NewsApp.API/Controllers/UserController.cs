@@ -136,4 +136,13 @@ public class UserController : ControllerBase
 
         return Ok(roles.FirstOrDefault(c => c.Type == ClaimTypes.Role).Value);
     }
+
+    [HttpGet("all")]
+    [Authorize(Policy = "Admin")]
+    public async Task<IActionResult> GetAll()
+    {
+
+        var getAllQuery = new GetAllUsersQuery();
+        return Ok(await _mediator.Send(getAllQuery));
+    }
 }

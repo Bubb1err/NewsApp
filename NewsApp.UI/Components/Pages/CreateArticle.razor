@@ -1,10 +1,12 @@
 @page "/create-article"
+@using NewsApp.Shared.Models.Base
 @using NewsApp.Shared.Models.Dto
 @using NewsApp.UI.Service
 @inject NavigationManager Navigation
 @inject AricleService ArticleService
 @inject CustomAuthenticationService AuthService
 @inject UserService UserService
+@inject CategoryService CategoryService
 @rendermode InteractiveServer
 
 <div class="create-article-container">
@@ -31,19 +33,42 @@
             </div>
 
             <div class="form-group">
+                <label for="category">Category</label>
+                <InputSelect id="category" 
+                            class="form-control" 
+                            @bind-Value="article.Category.Id">
+                    <option value="">Select a category...</option>
+                    @if (categories != null)
+                    {
+                        @foreach (var category in categories.Items)
+                        {
+                            <option value="@category.Id">@category.Name</option>
+                        }
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => article.Category.Id)" />
+            </div>
+
+            <div class="form-group">
                 <label for="content">Content</label>
                 <InputTextArea id="content" 
-                             class="form-control" 
-                             @bind-Value="article.Content" 
-                             rows="10" 
-                             placeholder="Write your article content here"/>
+                              class="form-control content-area" 
+                              @bind-Value="article.Content" 
+                              placeholder="Write your article content here"/>
                 <ValidationMessage For="@(() => article.Content)" />
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <InputCheckbox @bind-Value="article.IsPremium" />
+                    Premium Article
+                </label>
             </div>
 
             <div class="button-group">
                 <button type="submit" class="submit-button">
                     <i class="oi oi-check"></i>
-                    Publish Article
+                    Create Article
                 </button>
             </div>
         </div>
@@ -51,38 +76,51 @@
 </div>
 
 @code {
-    private ArticleDto   article = new();
-    private bool isAuthenticated;
+    private ArticleDto article = new()
+    {
+        Title = string.Empty,
+        Content = string.Empty,
+        Category = new CategoryDto(){ Id = new Guid(), Name = ""},
+        IsPremium = false
+    };
+
+    private DataCollectionApiResponseDto<CategoryDto> categories;
+
     
+
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            isAuthenticated = await AuthService.IsUserAuthenticatedAsync();
-            if (!isAuthenticated)
+            
+            try
             {
-                Navigation.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
-                return;
+                
+                
+                categories = await CategoryService.GetAllCategories();
             }
-
-            var user = await UserService.GetUserInfo();
-            article.Author = user.Name;
-            article.AuthorId = user.Id;
-
-            StateHasChanged();
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading categories: {ex.Message}");
+                categories = new DataCollectionApiResponseDto<CategoryDto>();
+            }
+                
         }
-    }
 
+
+        StateHasChanged();
+    }
+    
     private async Task CreateArticleAsync()
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(article.Title) || string.IsNullOrWhiteSpace(article.Content))
+            if (string.IsNullOrEmpty(article.Category.Id.ToString()))
             {
                 return;
             }
-            
+
             var success = await ArticleService.CreateArticleAsync(article);
             if (success)
             {
@@ -97,7 +135,7 @@
 
     private void GoBack()
     {
-        Navigation.NavigateTo("/userinfo");
+        Navigation.NavigateTo("/news");
     }
 }
 
@@ -153,16 +191,32 @@
     }
 
     .form-control {
+        width: 100%;
         padding: 0.75rem;
         border: 1px solid #ddd;
-        border-radius: 6px;
+        border-radius: 4px;
         font-size: 1rem;
-        width: 100%;
+        transition: border-color 0.2s;
     }
 
-    .form-control:focus {
+    select.form-control {
+        background-color: white;
+        cursor: pointer;
+    }
+
+    select.form-control:hover {
+        border-color: #FF8000;
+    }
+
+    select.form-control:focus {
         outline: none;
         border-color: #FF8000;
+        box-shadow: 0 0 0 2px rgba(255, 128, 0, 0.1);
+    }
+
+    .content-area {
+        min-height: 200px;
+        resize: vertical;
     }
 
     .button-group {

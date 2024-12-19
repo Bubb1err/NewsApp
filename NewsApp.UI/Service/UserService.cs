@@ -162,6 +162,40 @@ public class UserService
 
     }
 
+    public async Task<DataCollectionApiResponseDto<UserDto>> GetAllUsers()
+    {
+        try
+        {
+            var token = await _tokenService.GetTokenAsync();
+            _httpClient.DefaultRequestHeaders.Authorization = 
+                new AuthenticationHeaderValue("Bearer", token);
 
+            return await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<UserDto>>("User/all");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting users: {ex.Message}");
+            return new DataCollectionApiResponseDto<UserDto>();
+        }
+    }
+
+    public async Task<bool> UpdateUserRole(string userId, string role)
+    {
+        try
+        {
+            var token = await _tokenService.GetTokenAsync();
+            _httpClient.DefaultRequestHeaders.Authorization = 
+                new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _httpClient.PutAsJsonAsync($"api/users/{userId}/role", 
+                new { Role = role });
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating user role: {ex.Message}");
+            return false;
+        }
+    }
 
 }

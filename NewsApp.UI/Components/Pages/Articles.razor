@@ -30,7 +30,7 @@
                 </div>
                 @if (categories != null)
                 {
-                    @foreach (var category in categories)
+                    @foreach (var category in categories.Items)
                     {
                         <div class="category-item @(selectedCategory == category.Name ? "active" : "")" 
                              @onclick="() => SelectedCategory = category.Name">
@@ -517,7 +517,7 @@
 @code {
     private DataCollectionApiResponseDto<ArticleDto>? articles;
     private DataCollectionApiResponseDto<ArticleDto>? _topArticles;
-    private List<CategoryDto>? categories;
+    private DataCollectionApiResponseDto<CategoryDto>? categories;
     private bool isAuthenticated = false;
     private List<Guid> Likes = [];
     private List<Guid> Bookmarks = [];
