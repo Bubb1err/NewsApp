@@ -23,8 +23,11 @@ namespace NewsApp.API.Services
         private readonly Dictionary<string, string> _rssSources = new()
         {
             { "BBC", "https://feeds.bbci.co.uk/news/rss.xml" },
+            { "cbsnews", "https://www.cbsnews.com/latest/rss/world" },
+            { "yahoo", "https://www.yahoo.com/news/rss/world/" },
+            { "feedburner", "https://feeds.feedburner.com/time/world   " },
             {"CNN","http://rss.cnn.com/rss/edition_world.rss"},
-            {"FoxNews","https://moxie.foxnews.com/google-publisher/latest.xml"}
+            {"CNBC","https://www.cnbc.com/id/100727362/device/rss/rss.html"}
         };
 
         public ExtractNewestArticlesService(
@@ -39,12 +42,16 @@ namespace NewsApp.API.Services
 
         public async Task ParseAndSaveNewArticles()
         {
+            
             _logger.LogInformation("Starting to parse and save new articles");
             var articles = await GetArticles();
             _logger.LogInformation($"Found {articles.Count} articles to process");
 
             foreach (var article in articles)
             {
+                _logger.LogInformation(article.Title);
+
+                
                 try 
                 {
                     var exists = await _unitOfWork.GetRepository<Article>()
@@ -52,7 +59,8 @@ namespace NewsApp.API.Services
                         .AnyAsync(a => a.SourceUrl == article.SourceUrl);
 
                     if (!exists)
-                    {
+                    {            _logger.LogInformation("***************************************************Starting to  save new articles");
+
                         var category = await _categoryInitializer.GetCategoryForSource(article.Author);
                         if (category != null)
                         {
@@ -71,6 +79,7 @@ namespace NewsApp.API.Services
                             SourceUrl = article.SourceUrl,
                             CategoryId = category?.Id
                         };
+                        _logger.LogInformation("Starting to parse and save new articles***************************************");
 
                         await _unitOfWork.GetRepository<Article>().AddAsync(newArticle);
                         await _unitOfWork.SaveAsync();
