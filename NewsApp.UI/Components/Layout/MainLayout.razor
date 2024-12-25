@@ -13,14 +13,14 @@
 
 <MudLayout>
     <MudAppBar Elevation="1" Class="appbar-gradient">
-        <a href="" >
-        <MudText Typo="Typo.h5" Class="ml-3">News</MudText>
+        <a href="" class="logo-link">
+            <img src="Group 16.png" alt="News Logo" class="logo-image" />
         </a>
         <MudSpacer/>
 
 
         <div class="d-flex justify-content-end">
-            <MudNavLink Icon="@Icons.Material.Filled.Person" Href="/UserInfo" Match="NavLinkMatch.All"></MudNavLink>
+            <MudNavLink Icon="@Icons.Material.Filled.Person" Href="/NewUserInfo" Match="NavLinkMatch.All"></MudNavLink>
         </div>
 
 
@@ -35,4 +35,18 @@
         background-color: #229981; 
         color: white;
 }
+
+
+.logo-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+}
+.logo-image {
+    height: 32px; /* Настройте размер под ваши нужды */
+    width: auto;
+    margin-right: 8px;
+}
+
 </style>

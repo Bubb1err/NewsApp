@@ -78,9 +78,12 @@ public class CustomAuthenticationService
     public async Task<bool> RegisterAsync(RegisterDto request)
     {
         _logger.LogInfo($"Attempting registration for user: {request.Email}");
-        
+        Console.WriteLine(request.Email);
+        Console.WriteLine(request.Password);
+        Console.WriteLine(request.ConfirmPassword);
+        Console.WriteLine(request.Name);
         var client = CreateClient();
-        var response = await client.PostAsJsonAsync("Authentication/register", request);
+        var response = await _httpClient.PostAsJsonAsync("Authentication/register", request);
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogWarning($"Registration failed for user {request.Email}. Status code: {response.StatusCode}");

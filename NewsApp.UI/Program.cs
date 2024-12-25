@@ -1,7 +1,6 @@
 using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using MudBlazor.Services;
+using NewsApp.Shared.Constants;
 using NewsApp.UI.Service;
 using NewsApp.UI.Components;
 using Serilog;
@@ -9,7 +8,6 @@ using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Serilog
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -28,7 +26,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddMudServices();
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7220/api/") });
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(Urls.ApiUrl) });
 
 builder.Services.AddHttpContextAccessor();
 

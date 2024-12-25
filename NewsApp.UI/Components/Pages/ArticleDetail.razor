@@ -2,6 +2,7 @@
 @using MudBlazor
 @using NewsApp.Shared.Models
 @using NewsApp.Shared.Models.Base
+@using NewsApp.Shared.Models.Dto
 @using NewsApp.Shared.Models.Dto.Coment
 @using NewsApp.UI.Service
 @using ArticleDto = NewsApp.Shared.Models.Dto.ArticleDto
@@ -9,6 +10,7 @@
 @rendermode InteractiveServer
 @inject IDialogService DialogService
 @inject CommentService CommentService
+@inject CategoryService CategoryService
 @inject UserService UserService
 @inject  AricleService AricleService
 
@@ -21,94 +23,375 @@
     }
     else
     {
-        
-                @if (IsPremiumBlocked)
-                {
-                    <div class="premium-overlay">
-                        <div class="overlay-content">
-                            <i class="fas fa-crown premium-icon"></i>
-                            <h2>Premium Content</h2>
-                            <p>This article is available only for Premium subscribers</p>
-                            <button class="premium-button" @onclick="NavigateToPremium">
-                                Get Premium Access
-                            </button>
-                        </div>
-                    </div>
-                }
-            
-       
-        
-        <div class="article-content @(IsPremiumBlocked ? "blur-content" : "")">
-        
-        <div class="article-block">
-            @if (article.Author != null && !string.IsNullOrWhiteSpace(article.Author))
+        <MudContainer MaxWidth="MaxWidth.Medium">
+            @if (IsPremiumBlocked)
             {
-                <p class="article-source">@article.Author</p>
-            }
-            else
-            {
-                <a href="@article.SourceUrl" class="article-source">BBC News</a>
-
-            }
-
-            <div class="article-header">
-                <div class="article-title">
-                    <h1>@article.Title</h1>
-                </div>
-                @if (canEdit)
-                {
-                    <div class="edit-button">
-                        <button class="btn btn-primary" @onclick="NavigateToEdit">
-                            <i class="bi bi-pencil"></i>
+                <div class="premium-overlay">
+                    <div class="overlay-content">
+                        <i class="fas fa-crown premium-icon"></i>
+                        <h2>Premium Content</h2>
+                        <p>This article is available only for Premium subscribers</p>
+                        <button class="premium-button" @onclick="NavigateToPremium">
+                            Get Premium Access
                         </button>
                     </div>
-                }
-            </div>
-
-            
-            <p class="article-content">@article.Content</p>
-            <div class="article-controls">
-                <div>
-                    <button @onclick="() => OpenDialog()" class="send-button"><i class="bi bi-chat-fill"></i></button>
                 </div>
-                <p>@article.PublishDate.ToShortDateString()</p>
-            </div>
-        </div>
-        </div>
+            }
+            
+            <div class="article-content @(IsPremiumBlocked ? "blur-content" : "")">
+                <div class="article-block">
+                    <div class="article-source">
+                        @if (!string.IsNullOrWhiteSpace(article.Author))
+                        {
+                            <span>@article.Author</span>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(article.SourceUrl))
+                        {
+                            <a href="@article.SourceUrl">BBC News</a>
+                        }
+                    </div>
 
+                    <div class="article-header">
+                        <div class="article-title">
+                            <h1>@article.Title</h1>
+                        </div>
+                        @if (canEdit)
+                        {
+                            <div class="edit-button">
+                                <button class="btn btn-primary" @onclick="NavigateToEdit">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="edit-button">
+                            <button class="btn btn-danger" @onclick="DeleteArticleAsync">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            </div>
+                        }
+                    </div>
+
+                    <p class="article-content">@article.Content</p>
+                    <div class="article-controls">
+                        <div>
+                            <button @onclick="OpenDialog" class="send-button">
+                                <i class="bi bi-chat-fill"></i>
+                            </button>
+                        </div>
+                        <p>@article.PublishDate.ToShortDateString()</p>
+                    </div>
+                </div>
+            </div>
+        </MudContainer>
     }
 
 </MudContainer>
 
-<div class="custom-dialog" style="@(_isDialogOpen ? "display: flex;" : "display: none;")">
-    <div class="custom-dialog-content">
-        <span class="close-btn" @onclick="CloseDialog"><i class="bi bi-x-lg"></i></span>
-        @if (_loading)
+@if (_isDialogOpen)
+{
+    <div class="custom-dialog">
+        <div class="custom-dialog-content">
+            <span class="close-btn" @onclick="CloseDialog"><i class="bi bi-x-lg"></i></span>
+            @if (_loading)
+            {
+                <div class="loader">Loading...</div>
+            }
+            else
+            {
+                <h3>Comments (@(_comments?.Count() ?? 0))</h3>
+                <div class="comments-list">
+                    @if (_comments != null)
+                    {
+                        @foreach (var comment in _comments)
+                        {
+                            <div class="comment-item @GetClassForUser(comment.UserId)">
+                                <p class="comment-username" style="margin-bottom: 0;">@comment.UserName</p>
+                                <div class="comment-content @GetClassForUser(comment.UserId)">
+                                    <p class="comment-text" style="margin-bottom: 0;">@comment.Content</p>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+                <div class="comment-input-section">
+                    <input type="text" placeholder="Write a comment..." @bind="_newComment" class="comment-input" />
+                    <button @onclick="PostComment" class="send-button"><i class="bi bi-send"></i></button>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@if (_isEditDialogOpen && article != null)
+{
+    <div class="custom-dialog">
+        <div class="custom-dialog-content">
+            <span class="close-btn" @onclick="CloseEditDialog"><i class="bi bi-x-lg"></i></span>
+            <h3>Edit Article</h3>
+            
+            <div class="edit-form">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" class="form-control" @bind="editArticle.Title" />
+                </div>
+
+                <div class="form-group">
+                    <label>Content</label>
+                    <textarea class="form-control content-area" @bind="editArticle.Content"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Category</label>
+                    <select class="form-control" @bind="editArticle.CategoryId">
+                        @if (categories?.Items != null)
+                        {
+                            @foreach (var category in categories.Items)
+                            {
+                                <option value="@category.Id">@category.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="premium-checkbox">
+                        <input type="checkbox" @bind="editArticle.IsPremium" />
+                        <span>Premium Content</span>
+                    </label>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-save" @onclick="SaveArticleChanges">
+                        <i class="bi bi-check-lg"></i>
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+
+    [Parameter] public Guid Id { get; set; }
+    private ArticleDto? article;
+    private Dialog dialogInstance;
+
+    private bool isCommentDialogOpen = false;
+
+    [Inject] private CustomAuthenticationService AuthService { get; set; }
+    [Inject] private NavigationManager Navigation { get; set; }
+
+    private bool _isDialogOpen = false;
+    private bool _loading = true;
+    private Guid currentArticle;
+    private List<CommentDto> _comments = new();
+    private string _newComment = string.Empty;
+    private bool isAuthenticated = false;
+    private Guid UserId;
+    private bool IsPremiumBlocked = false;
+    private bool canEdit = false;
+    private bool _isEditDialogOpen = false;
+    private UpdateArticleDto editArticle;
+    private DataCollectionApiResponseDto<CategoryDto> categories;
+
+ 
+
+    private async Task FetchArticleDetails()
+    {
+        try
         {
-            <div class="loader">Loading...</div>
+            article = await AricleService.GetAArticleByIdAsync(Id);
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching article: {ex.Message}");
+        }
+    }
+    
+    private async Task DeleteArticleAsync()
+    {
+
+        Console.WriteLine("Article will be deleted");
+        if (article == null || UserId == null) return;
+        
+        var success = await AricleService.DeleteArticleAsync(Id);
+        
+        if (success)
+        {
+            NavigateToList();
+        }
+    }
+    private void NavigateToList()
+    {
+        Navigation.NavigateTo("/news");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isAuthenticated = await AuthService.IsUserAuthenticatedAsync();
+
+            if (isAuthenticated)
+            {
+                UserId = await UserService.GetUserIdAsync();
+            }
+
+            await FetchArticleDetails();
+            
+            
+            if (article != null && UserId!= null)
+            {
+                categories = await CategoryService.GetAllCategories();
+   
+                var role = await AuthService.AccessInfo();
+
+                Console.WriteLine(role);
+                
+                IsPremiumBlocked = (role!="Admin" && role!="Premium") && article.IsPremium;
+
+                if (article.AuthorId == null && role=="Premium" )
+                {
+                    canEdit = false;
+                }
+                else
+                {
+
+                    canEdit = (role == "Admin") || (role == "Premium" && new Guid(article.AuthorId) == UserId);
+                }
+
+                Console.WriteLine(article.AuthorId);
+                Console.WriteLine(UserId);
+                Console.WriteLine(canEdit);
+                
+            }
+
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadComments()
+    {
+        _loading = true;
+        try
+        {
+            _comments = await this.CommentService.GetCommentsDto(currentArticle);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task PostComment()
+    {
+        if (isAuthenticated)
+        {
+            if (!string.IsNullOrWhiteSpace(_newComment))
+            {
+                try
+                {
+                    var newComment = new CreateCommentDto()
+                        {
+                            Content = _newComment,
+                            UserId = UserId,
+                            ArticleId = currentArticle
+                        };
+                    await CommentService.CreateComment(newComment);
+                    _comments.Clear();
+                    _comments = await CommentService.GetCommentsDto(currentArticle);
+                    _newComment = string.Empty;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
+            }
         }
         else
         {
-            <h3>Comments (@_comments.Count())</h3>
-            <div class="comments-list">
-                @foreach (var comment in _comments)
-                {
-                    <div class="comment-item @GetClassForUser(comment.UserId)">
-                        <p class="comment-username" style="margin-bottom: 0;">@comment.UserName</p>
-                        <div class="comment-content @GetClassForUser(comment.UserId)">
-                            <p class="comment-text" style="margin-bottom: 0;">@comment.Content</p>
-                        </div>
-                    </div>
-                }
-            </div>
-            <div class="comment-input-section">
-                <input type="text" placeholder="Write a comment..." @bind="_newComment" class="comment-input" />
-                <button @onclick="PostComment" class="send-button"><i class="bi bi-send"></i></button>
-            </div>
+            Navigation.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
         }
-    </div>
-</div>
+    }
 
+    private string GetClassForUser(Guid userId)
+    {
+        return userId == UserId ? "dialog-item user-1" : "dialog-item user-2";
+    }
+    
+    private async void NavigateToEdit()
+    {
+        
+        try
+        {
+           
+            categories = await CategoryService.GetAllCategories();
+        }
+        finally
+        {
+            _loading = false;
+        }
+        
+
+        
+        editArticle = new UpdateArticleDto()
+        {
+            ArticleId = article.Id,
+            Title = article.Title,
+            Content = article.Content,
+            CategoryId = article.Category.Id,
+            IsPremium = article.IsPremium,
+            UserId = article.AuthorId
+        };
+        _isEditDialogOpen = true;
+        StateHasChanged();
+    }
+    
+    
+    
+    private async Task NavigateToPremium()
+    {
+        Console.WriteLine("PREMIUM");
+         await UserService.GetPremium(Uri.EscapeDataString(Navigation.Uri));
+    }
+
+    public async Task OpenDialog()
+    {
+        currentArticle = Id;
+        await LoadComments();
+
+        _isDialogOpen = true;
+        StateHasChanged();
+    }
+
+    private void CloseDialog() => _isDialogOpen = false;
+
+    private async Task SaveArticleChanges()
+    {
+        try
+        {
+            var result = await AricleService.UpdateArticleAsync(editArticle);
+            if (result)
+            {
+                await FetchArticleDetails();
+                CloseEditDialog();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating article: {ex.Message}");
+        }
+    }
+
+    private void CloseEditDialog()
+    {
+        _isEditDialogOpen = false;
+        StateHasChanged();
+    }
+}
 
 <style>
     .custom-dialog {
@@ -253,17 +536,21 @@
         background: #e67300;
     }
     .send-button {
-        color: #000;
+        background: none;
         border: none;
+        color: #666;
         cursor: pointer;
+        padding: 5px;
+        transition: all 0.2s;
     }
 
-        .send-button:hover {
-            color: #FF8000;
-        }
-
     .send-button i {
-        font-size: 2em;
+        font-size: 2rem;
+    }
+
+    .send-button:hover {
+        color: #FF8000;
+        transform: scale(1.1);
     }
 
     .custom-dialog-content h3 {
@@ -288,6 +575,7 @@
     }
 
     .edit-button {
+        
         margin-left: 20px;
     }
 
@@ -301,152 +589,100 @@
     .edit-button .bi {
         font-size: 1.2rem;
     }
-</style>
-
-@code {
-
-    [Parameter] public Guid Id { get; set; }
-    private ArticleDto? article;
-    private Dialog dialogInstance;
-
-    private bool isCommentDialogOpen = false;
-
-    [Inject] private CustomAuthenticationService AuthService { get; set; }
-    [Inject] private NavigationManager Navigation { get; set; }
-
-    private bool _isDialogOpen = false;
-    private bool _loading = true;
-    private Guid currentArticle;
-    private List<CommentDto> _comments = new();
-    private string _newComment = string.Empty;
-    private bool isAuthenticated = false;
-    private Guid UserId;
-    private bool IsPremiumBlocked = false;
-    private bool canEdit = false;
-
 
    
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-control {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+
     
-
-    private async Task FetchArticleDetails()
-    {
-        try
-        {
-            article = await AricleService.GetAArticleByIdAsync(Id);
-
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error fetching article: {ex.Message}");
-        }
+    
+    .content-area {
+        min-height: 300px; /* Увеличиваем минимальную высоту */
+        height: 400px; /* Устанавливаем фиксированную высоту */
+        resize: vertical; /* Позволяем пользователю изменять размер по вертикали */
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+        line-height: 1.5;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 1rem;
     }
-
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            isAuthenticated = await AuthService.IsUserAuthenticatedAsync();
-
-            if (isAuthenticated)
-            {
-                UserId = await UserService.GetUserIdAsync();
-            }
-
-            await FetchArticleDetails();
-            
-            
-            if (article != null && UserId!= null)
-            {
-                
-                var role = await AuthService.AccessInfo();
-
-                Console.WriteLine(role);
-                
-                IsPremiumBlocked = (role!="Admin" && role!="Premium") && article.IsPremium;
-                
-                canEdit = (role=="Admin") || (role=="Premium" && new Guid( article.AuthorId) ==  UserId);
-                Console.WriteLine(article.AuthorId);
-                Console.WriteLine(UserId);
-                Console.WriteLine(canEdit);
-                
-            }
-
-
-            StateHasChanged();
-        }
+    .custom-dialog-content {
+        width: 90%;
+        max-width: 800px; /* Увеличиваем максимальную ширину */
+        max-height: 90vh; /* Устанавливаем максимальную высоту от высоты экрана */
+        overflow-y: auto; /* Добавляем прокрутку при необходимости */
+        padding: 2rem;
     }
-
-
-    private async Task LoadComments()
-    {
-        _loading = true;
-        try
-        {
-            _comments = await this.CommentService.GetCommentsDto(currentArticle);
-        }
-        finally
-        {
-            _loading = false;
-        }
+    .edit-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        padding: 1rem 0;
     }
-
-    private async Task PostComment()
-    {
-        if (isAuthenticated)
-        {
-            if (!string.IsNullOrWhiteSpace(_newComment))
-            {
-                try
-                {
-                    var newComment = new CreateCommentDto()
-                        {
-                            Content = _newComment,
-                            UserId = UserId,
-                            ArticleId = currentArticle
-                        };
-                    await CommentService.CreateComment(newComment);
-                    _comments.Clear();
-                    _comments = await CommentService.GetCommentsDto(currentArticle);
-                    _newComment = string.Empty;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-                }
-            }
-        }
-        else
-        {
-            Navigation.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
-        }
-    }
-
-    private string GetClassForUser(Guid userId)
-    {
-        return userId == UserId ? "dialog-item user-1" : "dialog-item user-2";
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
     }
     
-    private void NavigateToEdit()
-    {
-        Navigation.NavigateTo($"/articles/edit/{Id}");
-    }
     
-    private async Task NavigateToPremium()
-    {
-        Console.WriteLine("PREMIUM");
-         await UserService.GetPremium(Uri.EscapeDataString(Navigation.Uri));
+    
+
+    .premium-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
     }
 
-
-    public async Task OpenDialog()
-    {
-        currentArticle = Id;
-        await LoadComments();
-
-        _isDialogOpen = true;
-        StateHasChanged();
+    .button-group {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1rem;
     }
 
-    private void CloseDialog() => _isDialogOpen = false;
-}
+    .btn-save {
+        padding: 0.75rem 1.5rem;
+        background: #FF8000;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .btn-save:hover {
+        background: #E67300;
+        transform: scale(1.02);
+    }
+
+    .btn-save i {
+        font-size: 1.2rem;
+    }
+
+    .article-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #eee;
+    }
+</style>

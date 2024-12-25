@@ -2,6 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using NewsApp.Shared.Constants;
 using NewsApp.Shared.Models;
 
 namespace NewsApp.API.Services;
@@ -26,8 +27,8 @@ public class LiqPayService
     {
         _publicKey = configuration["LiqPay:PublicKey"];
         _privateKey = configuration["LiqPay:PrivateKey"];
-        ngrokUrl = configuration["NgRok:ngrokUrl"];
-        ngrokUrl2 = configuration["NgRok:ngrokUrl2"];
+        ngrokUrl = Urls.ServerUrl;
+        ngrokUrl2 = Urls.UiUrl;
         _httpClient = httpClient;
         _accessControl = accessControl;
         _logger = logger;
@@ -43,8 +44,8 @@ public class LiqPayService
                 { "public_key", _publicKey },
                 { "version", "3" },
                 { "action", "subscribe" },
-                { "amount", "5"},
-                { "currency", "USD" },
+                { "amount", "200"},
+                { "currency", "UAH" },
                 { "description", "NewsPremium" },
                 { "order_id", Guid.NewGuid().ToString("N") },
                 { "email", email },

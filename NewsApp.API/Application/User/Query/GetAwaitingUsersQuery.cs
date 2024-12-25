@@ -2,35 +2,36 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using NewsApp.API.Data.Repository.Base;
+using NewsApp.Shared.Constants;
 using NewsApp.Shared.Models.Base;
-using NewsApp.Shared.Models.Dto;
 using NewsApp.Shared.Models.Dto.User;
 
 namespace NewsApp.API.Application.User.Query;
 
-public class GetAllUsersQuery: IRequest<DataCollectionApiResponseDto<UserDto>>
+
+public class GetAwaitingUsersQuery: IRequest<DataCollectionApiResponseDto<UserDto>>
 {
     
 }
 
 
-internal sealed class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, DataCollectionApiResponseDto<UserDto>>
+internal sealed class GetAwaitingUsersQueryHandler : IRequestHandler<GetAwaitingUsersQuery, DataCollectionApiResponseDto<UserDto>>
 {
     private readonly UnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public GetAllUsersQueryHandler(UnitOfWork unitOfWork, IMapper mapper)
+    public GetAwaitingUsersQueryHandler(UnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
 
-    public async Task<DataCollectionApiResponseDto<UserDto>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
+    public async Task<DataCollectionApiResponseDto<UserDto>> Handle(GetAwaitingUsersQuery request, CancellationToken cancellationToken)
     {
 
         var users = await _unitOfWork
             .GetRepository<Data.Entities.User>()
-            .GetAll()
+            .GetAll(e => e.State == UserState.Awaiting)
             .ToListAsync(cancellationToken: cancellationToken);
         
         var usersDto = _mapper.Map<List<UserDto>>(users);
@@ -40,4 +41,5 @@ internal sealed class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery
             Items = usersDto
         };
     }
+
 }

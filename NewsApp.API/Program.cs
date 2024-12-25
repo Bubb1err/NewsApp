@@ -51,7 +51,7 @@ builder.Services.AddSwaggerGen(option =>
         }
     });
 });
-/*
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 var serverVersion = new MySqlServerVersion(new Version(8, 0, 0));
@@ -85,7 +85,7 @@ builder.Services.AddHangfire(configuration => configuration
                 TablesPrefix = "Hangfire",
             }
         )
-    ));*/
+    ));
 
 builder.Services.AddHangfireServer();
 

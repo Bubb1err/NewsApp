@@ -1,0 +1,935 @@
+﻿@using System.Net.Mime;
+@using MudBlazor;
+@using NewsApp.Shared.Models.Dto.User;
+@using NewsApp.UI.Service;
+@using NewsApp.Shared.Constants;
+@using NewsApp.Shared.Models.Base;
+@using NewsApp.Shared.Models.Dto
+@page "/NewUserInfo"
+
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+@inject UserService UserService
+@inject CustomAuthenticationService AuthService
+@inject CategoryService CategoryService
+
+@if (isAuthenticated)
+{
+    <div class="settings-container">
+        <div class="settings-header">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="bi bi-person" style="font-size: 48px;"></i>
+                </div>
+                <div class="profile-info">
+                    <h2>@_userDto.Name</h2>
+                    <p>@_userDto.Email</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-nav">
+            <button class="nav-button @(currentTab == "general" ? "active" : "")" @onclick='() => currentTab = "general"'>
+                <i class="bi bi-gear"></i>
+                General
+            </button>
+            <button class="nav-button @(currentTab == "actions" ? "active" : "")" @onclick='() => currentTab = "actions"'>
+                <i class="bi bi-collection"></i>
+                Actions
+            </button>
+            <button class="nav-button @(currentTab == "security" ? "active" : "")" @onclick='() => currentTab = "security"'>
+                <i class="bi bi-shield"></i>
+                Security
+            </button>
+            @if (role == "Admin")
+            {
+                <button class="nav-button @(currentTab == "admin" ? "active" : "")" @onclick='() => currentTab = "admin"'>
+                    <i class="bi bi-shield-lock"></i>
+                    Admin Panel
+                </button>
+            }
+        </div>
+
+        <div class="settings-content">
+            @if (currentTab == "general")
+            {
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input type="text" class="form-control" @bind="_userDto.Name" />
+                </div>
+
+                <div class="form-group">
+                    <label>Role</label>
+                    <input type="text" class="form-control" value="@_userDto.Role" readonly />
+                </div>
+
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" class="form-control" value="@_userDto.Email" readonly />
+                </div>
+
+                <div class="form-group">
+                    <label>Verification Status</label>
+                    <div class="verification-status @_userDto.State.ToString().ToLower()">
+                        @_userDto.State
+                    </div>
+                    @if (_userDto.State == UserState.Unknown ||_userDto.State == UserState.Rejected)
+                    {
+                        <button class="verify-button" @onclick="RequestVerification">
+                            <i class="bi bi-patch-check"></i>
+                            Request Verification
+                        </button>
+                    }
+                </div>
+
+                <div class="button-container">
+                    <button class="save-button" @onclick="SaveChanges">
+                        Save Changes
+                    </button>
+                </div>
+            }
+            else if (currentTab == "actions")
+            {
+                <div class="action-buttons">
+                    <button class="action-button" @onclick="getLiked">
+                        <i class="bi bi-heart"></i>
+                        <span>Liked Articles</span>
+                    </button>
+                    <button class="action-button" @onclick="getSaved">
+                        <i class="bi bi-bookmark"></i>
+                        <span>Saved Articles</span>
+                    </button>
+                    @if (role == "Admin" || (role == "Premium" && _userDto.State == UserState.Verified ))
+                    {
+                        <button class="action-button" @onclick="CreateArticle">
+                            <i class="bi bi-plus-circle"></i>
+                            <span>Create Article</span>
+                        </button>
+                    }
+                </div>
+            }
+            else if (currentTab == "security")
+            {
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <input type="checkbox" checked />
+                        <span class="toggle-text">Two Factor Authentication</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <input type="checkbox" checked />
+                        <span class="toggle-text">Google Login</span>
+                    </label>
+                </div>
+                
+                <div class="logout-container">
+                    <button class="logout-button" @onclick="Logout">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            }
+            else if (currentTab == "admin" && role == "Admin")
+            {
+                <div class="admin-sections">
+                    <div class="admin-section">
+                        <h3>Categories Management</h3>
+                        <div class="category-form">
+                            <input type="text" class="form-control" @bind="newCategoryName" placeholder="New category name"/>
+                            <button class="btn-add" @onclick="AddCategory">
+                                <i class="bi bi-plus-lg"></i>
+                                Add Category
+                            </button>
+                        </div>
+                        <div class="categories-list">
+                            @if (categories != null)
+                            {
+                                @foreach (var category in categories.Items)
+                                {
+                                    <div class="category-item">
+                                        <span>@category.Name</span>
+                                        <button class="btn-delete" @onclick="() => DeleteCategory(category.Id)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <div class="admin-section">
+                        <h3>User Management</h3>
+                        <div class="users-list">
+                            @if (users != null)
+                            {
+                                @foreach (var user in users.Items)
+                                {
+                                    <div class="user-item">
+                                        <div class="user-info">
+                                            <span>@user.Email</span>
+                                            <span class="user-role">@user.Name</span>
+                                        </div>
+                                        <div class="user-controls">
+                                            <div class="role-controls">
+                                                <button class="btn-role @(user.Role == UserRoles.Admin ? "active" : "")" 
+                                                        @onclick="() => UpdateUserRole(user.Id, UserRoles.Admin)">
+                                                    Admin
+                                                </button>
+                                                <button class="btn-role @(user.Role == UserRoles.Premium ? "active" : "")"
+                                                        @onclick="() => UpdateUserRole(user.Id, UserRoles.Premium)">
+                                                    Premium
+                                                </button>
+                                                <button class="btn-role @(user.Role == UserRoles.Default ? "active" : "")"
+                                                        @onclick="() => UpdateUserRole(user.Id, UserRoles.Default)">
+                                                    Default
+                                                </button>
+                                            </div>
+                                            <div class="state-controls">
+                                                <button class="btn-state @(user.State == UserState.Verified ? "active" : "")"
+                                                        @onclick="() => UpdateUserState(user.Id, UserState.Verified)">
+                                                    Verify
+                                                </button>
+                                                <button class="btn-state @(user.State == UserState.Rejected ? "active" : "")"
+                                                        @onclick="() => UpdateUserState(user.Id, UserState.Rejected)">
+                                                    Reject
+                                                </button>
+                                                <button class="btn-state @(user.State == UserState.Blocked ? "active" : "")"
+                                                        @onclick="() => UpdateUserState(user.Id, UserState.Blocked)">
+                                                    Block
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <div class="admin-section verification-section">
+                        <div class="section-header">
+                            <h3>Verification Requests</h3>
+                            <button class="btn-update" @onclick="LoadAwaitingUsers">
+                                <i class="bi bi-arrow-clockwise"></i>
+                                Update
+                            </button>
+                        </div>
+                        <div class="verification-requests">
+                            @if (awaitingUsers != null && awaitingUsers.Any())
+                            {
+                                @foreach (var user in awaitingUsers)
+                                {
+                                    <div class="verification-request-item">
+                                        <div class="user-info">
+                                            <div class="user-details">
+                                                <span class="user-name">@user.Name</span>
+                                                <span class="user-email">@user.Email</span>
+                                            </div>
+                                            <div class="request-status">
+                                                Awaiting Verification
+                                            </div>
+                                        </div>
+                                        <div class="verification-actions">
+                                            <button class="btn-verify" @onclick="() => UpdateUserState(user.Id, UserState.Verified)">
+                                                <i class="bi bi-check-lg"></i>
+                                                Verify
+                                            </button>
+                                            <button class="btn-reject" @onclick="() => UpdateUserState(user.Id, UserState.Rejected)">
+                                                <i class="bi bi-x-lg"></i>
+                                                Reject
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="no-requests">
+                                    <i class="bi bi-check2-circle"></i>
+                                    <p>No pending verification requests</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            
+        </div>
+    </div>
+}
+
+@code {
+    private UserDto _userDto = new UserDto();
+    private List<UserDto> awaitingUsers = new();
+
+    private bool isAuthenticated;
+    private string role;
+    private string currentTab = "general";
+    private DataCollectionApiResponseDto<CategoryDto> categories;
+    private DataCollectionApiResponseDto<UserDto> users;
+    private string newCategoryName = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isAuthenticated = await AuthService.IsUserAuthenticatedAsync();
+            
+            if (!isAuthenticated)
+            {
+                Navigation.NavigateTo($"/auth?returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
+            }
+            else
+            {
+                _userDto = await UserService.GetUserInfo();
+                role = await AuthService.AccessInfo();
+                
+                if (role == "Admin")
+                {
+                    await LoadAdminData();
+                }
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task SaveChanges()
+    {
+        // Добавить логику сохранения изменений
+        StateHasChanged();
+    }
+
+    private async Task getLiked()
+    {
+        Navigation.NavigateTo("/liked-articles");
+    }
+    
+    private async Task getSaved()
+    {
+        Navigation.NavigateTo("/saved-articles");
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        isAuthenticated = false;
+        Navigation.NavigateTo($"/auth");
+    }
+    
+    private void CreateArticle()
+    {
+        if (role == "Admin" || role == "Premium")
+        {
+            Navigation.NavigateTo("/create-article");
+        }
+        else
+        {
+            UserService.GetPremium("");
+        }
+    }
+
+    private async Task LoadAdminData()
+    {
+        categories = await CategoryService.GetAllCategories();
+        users = await UserService.GetAllUsers();
+    }
+
+    private async Task AddCategory()
+    {
+        if (string.IsNullOrWhiteSpace(newCategoryName)) return;
+
+        await CategoryService.CreateCategory(new CategoryDto { Name = newCategoryName });
+        newCategoryName = "";
+        await LoadAdminData();
+        StateHasChanged();
+    }
+    
+    
+    
+
+    private async Task DeleteCategory(Guid categoryId)
+    {
+        await CategoryService.DeleteCategory(categoryId);
+        await LoadAdminData();
+    }
+
+    private async Task UpdateUserRole(string userId, string newRole)
+    {
+        await UserService.UpdateUserRole(userId, newRole);
+        await LoadAdminData();
+        StateHasChanged();
+    }
+
+    private async Task RequestVerification()
+    {
+        await UserService.RequestVerification(_userDto.Id);
+        _userDto = await UserService.GetUserInfo();
+        StateHasChanged();
+    }
+    private async Task LoadAwaitingUsers()
+    {
+        try
+        {
+            var response = await UserService.GetAllUsersRequests();
+            if (response != null)
+            {
+                awaitingUsers = response.Items;
+            }
+        }
+        catch (Exception ex)
+        {
+            // Обработка ошибок
+        }
+    }
+
+    private async Task UpdateUserState(string userId, UserState newState)
+    {
+        var dto =  new UpdateStateDto();
+        dto.UserId = userId;
+        dto.State = newState;
+        
+        await UserService.UpdateUserState(dto);
+        await LoadAwaitingUsers();
+        await LoadAdminData();
+        StateHasChanged();
+    }
+}
+
+<style>
+    .settings-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .settings-header h1 {
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 2rem;
+    }
+
+    .settings-nav {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 1rem;
+    }
+
+    .nav-button {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        background: none;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .nav-button.active {
+        color: #FF8000;
+        border-bottom: 2px solid #FF8000;
+    }
+
+    .nav-button:hover {
+        color: #FF8000;
+    }
+
+    .settings-content {
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #FF8000;
+        box-shadow: 0 0 0 2px rgba(98, 0, 234, 0.1);
+    }
+
+    .phone-input {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .country-select {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+    }
+
+    .toggle-label {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+    }
+
+    .toggle-text {
+        color: #333;
+    }
+
+    .button-container {
+        margin-top: 2rem;
+        text-align: right;
+    }
+
+    .save-button {
+        padding: 0.75rem 2rem;
+        background: #FF8000;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .save-button:hover {
+        background: #FF8000;
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        background: #FF8000;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .profile-info h2 {
+        margin: 0;
+        color: #333;
+        font-size: 1.5rem;
+    }
+
+    .profile-info p {
+        margin: 0.5rem 0 0;
+        color: #666;
+    }
+
+    .action-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .action-button {
+        padding: 1rem;
+        border: none;
+        border-radius: 8px;
+        background: #f5f5f5;
+        color: #333;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .action-button:hover {
+        background: #FF8000;
+        color: white;
+    }
+
+    .logout-container {
+        margin-top: 2rem;
+        border-top: 1px solid #eee;
+        padding-top: 2rem;
+    }
+
+    .logout-button {
+        width: 100%;
+        padding: 1rem;
+        border: none;
+        border-radius: 8px;
+        background: #ff4444;
+        color: white;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .logout-button:hover {
+        background: #cc0000;
+    }
+
+    .admin-sections {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(500px, 1fr));
+        gap: 2rem;
+        margin-top: 1rem;
+        width: 100%;
+    }
+
+    .admin-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        height: fit-content;
+        width: 100%;
+    }
+
+    @@media (max-width: 1200px) {
+        .admin-sections {
+            grid-template-columns: 1fr;
+        }
+
+        .admin-section {
+            max-width: 100%;
+        }
+    }
+
+    .category-form {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .categories-list, .users-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .category-item, .user-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .category-item:hover, .user-item:hover {
+        background: #f0f0f0;
+    }
+
+    .user-item {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .user-info {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        align-items: center;
+    }
+
+    .user-role {
+        font-weight: 500;
+        color: #666;
+    }
+
+    .role-controls {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-role {
+        padding: 0.5rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-role.active {
+        background: #FF8000;
+        color: white;
+        border-color: #FF8000;
+    }
+
+    .btn-add {
+        padding: 0.5rem 1rem;
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .btn-add:hover {
+        background: #218838;
+    }
+
+    .btn-delete {
+        padding: 0.5rem;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-delete:hover {
+        background: #c82333;
+    }
+
+    .verification-status {
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        font-weight: 500;
+    }
+
+    .verification-status.unknown {
+        background: #f8f9fa;
+        color: #666;
+    }
+
+    .verification-status.verified {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .verification-status.rejected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .verification-status.blocked {
+        background: #343a40;
+        color: white;
+    }
+
+    .verify-button {
+        padding: 0.75rem 1rem;
+        background: #FF8000;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .verify-button:hover {
+        background: #E67300;
+    }
+
+    .state-controls {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .btn-state {
+        padding: 0.5rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-state.active {
+        color: white;
+    }
+
+    .btn-state.active:nth-child(1) {
+        background: #28a745;
+        border-color: #28a745;
+    }
+
+    .btn-state.active:nth-child(2) {
+        background: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .btn-state.active:nth-child(3) {
+        background: #343a40;
+        border-color: #343a40;
+    }
+
+    .verification-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .verification-requests {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .verification-request-item {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s;
+    }
+
+    .verification-request-item:hover {
+        background: #f0f0f0;
+    }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .user-name {
+        font-weight: 500;
+        color: #333;
+    }
+
+    .user-email {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .request-status {
+        font-size: 0.875rem;
+        color: #FF8000;
+        background: rgba(255, 128, 0, 0.1);
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .verification-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .btn-verify {
+        padding: 0.5rem 1rem;
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .btn-verify:hover {
+        background: #218838;
+    }
+
+    .btn-reject {
+        padding: 0.5rem 1rem;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .btn-reject:hover {
+        background: #c82333;
+    }
+
+    .no-requests {
+        text-align: center;
+        padding: 2rem;
+        color: #666;
+    }
+
+    .no-requests i {
+        font-size: 2rem;
+        color: #28a745;
+        margin-bottom: 1rem;
+    }
+
+    .no-requests p {
+        margin: 0;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .btn-update {
+        padding: 0.5rem 1rem;
+        background: #FF8000;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+    }
+
+    .btn-update:hover {
+        background: #E67300;
+        transform: scale(1.02);
+    }
+
+    .btn-update i {
+        font-size: 1.1rem;
+    }
+</style>
+

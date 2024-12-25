@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.JSInterop;
 using MudBlazor;
+using NewsApp.Shared.Constants;
 using NewsApp.Shared.Models;
 using NewsApp.Shared.Models.Base;
 using NewsApp.Shared.Models.Dto.User;
@@ -33,11 +34,39 @@ public class UserService
     public async Task<Guid> GetUserIdAsync()
     {
         var response = await _httpClient.GetFromJsonAsync<DataApiResponseDto<UserDto>>("User/info");
-
-
-
-        return  new Guid( response.Item.Id);
+        
+        return  new Guid( response?.Item.Id ?? throw new InvalidOperationException());
     }
+
+    public async Task<bool> RequestVerification(string userId)
+    {
+        
+        Console.WriteLine("Awaiting verification");
+        var token = await _tokenService.GetTokenAsync();
+        
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await _httpClient.PutAsJsonAsync("User/verification",userId);
+        
+        return response.IsSuccessStatusCode;
+    }
+    public async Task<bool> UpdateUserState(UpdateStateDto userState)
+    {
+        Console.WriteLine("UserState");
+        var token = await _tokenService.GetTokenAsync();
+        
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        
+        
+        var response = await _httpClient.PutAsJsonAsync("User/state",userState  );
+        
+        return response.IsSuccessStatusCode;
+    }
+    
+    
+    
+
 
     public async Task<List<Guid>> GetUserLikes()
     {
@@ -178,6 +207,25 @@ public class UserService
             return new DataCollectionApiResponseDto<UserDto>();
         }
     }
+    
+    public async Task<DataCollectionApiResponseDto<UserDto>> GetAllUsersRequests()
+    {
+        try
+        {
+            var token = await _tokenService.GetTokenAsync();
+            _httpClient.DefaultRequestHeaders.Authorization = 
+                new AuthenticationHeaderValue("Bearer", token);
+
+            return await _httpClient.GetFromJsonAsync<DataCollectionApiResponseDto<UserDto>>("User/verificationRequests");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting users: {ex.Message}");
+            return new DataCollectionApiResponseDto<UserDto>();
+        }
+    }
+    
+    
 
     public async Task<bool> UpdateUserRole(string userId, string role)
     {

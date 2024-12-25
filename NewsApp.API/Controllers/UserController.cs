@@ -145,6 +145,15 @@ public class UserController : ControllerBase
         var getAllQuery = new GetAllUsersQuery();
         return Ok(await _mediator.Send(getAllQuery));
     }
+    
+    [HttpGet("verificationRequests")]
+    [Authorize(Policy = "Admin")]
+    public async Task<IActionResult> GetVerificationRequests()
+    {
+        var getAllQuery = new GetAwaitingUsersQuery();
+        return Ok(await _mediator.Send(getAllQuery));
+    }
+    
 
     
 
@@ -175,4 +184,51 @@ public class UserController : ControllerBase
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
+    
+    [HttpPut("state")]
+    [Authorize(Policy = "Admin")] 
+    public async Task<IActionResult> UpdateUserVerified([FromBody] UpdateUserStateCommand command)
+    {
+        try 
+        {
+            var user = await _accessControlService.GetUserById(command.UserId);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            return Ok(await _mediator.Send(command));
+
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
+    
+    
+    [HttpPut("verification")]
+    [Authorize(Policy = "Default")] 
+    public async Task<IActionResult> RequestVerification([FromBody] string UserId)
+    {
+        var command = new RequestVerificationCommand { UserId = UserId };
+        try 
+        {
+            var user = await _accessControlService.GetUserById(command.UserId);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            return Ok(await _mediator.Send(command));
+
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
+    
+    
+    
 }

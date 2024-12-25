@@ -1,11 +1,14 @@
 
 using Microsoft.AspNetCore.Identity;
+using NewsApp.Shared.Constants;
 
 namespace NewsApp.API.Data.Entities;
 
 public class User : IdentityUser
 {
     public string? Name { get; set; }
+    
+   public UserState State { get; set; } = UserState.Unknown;
     
     
     public virtual List<Comment> Comments { get; set; } = [];
@@ -36,6 +39,14 @@ public class User : IdentityUser
     {
         Saved.Remove(saved);
     }
-    
+
+    public void ChangeUserState( UserState newState )
+    {
+        State = newState;
+    }
+    public void AwaitingState() {
+        State = UserState.Awaiting;
+    }
+
 
 }

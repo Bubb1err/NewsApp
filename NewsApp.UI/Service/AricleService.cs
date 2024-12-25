@@ -112,6 +112,7 @@ public class AricleService
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var response = await _httpClient.PostAsJsonAsync("Article", command);
             Console.WriteLine("TEST2");
+            Console.WriteLine(response.StatusCode);
             return response.IsSuccessStatusCode;
             
             
