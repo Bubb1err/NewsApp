@@ -45,8 +45,8 @@ public class AccessControlService
         }
 
         var expiration = claims.Any(c => c.Type == "IsTemporary") 
-            ? DateTime.UtcNow.AddHours(1)  
-            : DateTime.UtcNow.AddHours(24);
+            ? DateTime.UtcNow.AddHours(1000)  
+            : DateTime.UtcNow.AddHours(2400);
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
