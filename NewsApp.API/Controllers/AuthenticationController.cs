@@ -77,6 +77,36 @@ public class AuthenticationController(
         });
     }
     
+    
+    [HttpPost("refresh")]
+    [Authorize(Policy = "Default")]
+
+    public async Task<ActionResult<string>> RefreshToken()
+    {
+        try
+        {
+            var token = HttpContext.Request.Headers["Authorization"]
+                .FirstOrDefault()?.Split(" ").Last();
+
+            if (string.IsNullOrEmpty(token))
+            {
+                return Unauthorized("No token provided");
+            }
+
+            var newToken = await accessControl.RefreshToken(token);
+            return Ok(newToken);
+        }
+        catch (UnauthorizedException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+    
+    
     [HttpPost("changeUserPassword")]
     [Authorize(Policy = "Default")]
     public async Task<IActionResult> ChangeUserPassword([FromBody] ChangeUserPasswordRequestCommand changePasswordRequestCommand)

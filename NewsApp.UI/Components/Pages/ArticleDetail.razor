@@ -356,6 +356,14 @@
     {
         Console.WriteLine("PREMIUM");
          await UserService.GetPremium(Uri.EscapeDataString(Navigation.Uri));
+         
+         await AuthService.RefreshTokenAndUpdateState();
+            
+         await DialogService.ShowMessageBox(
+             "Success",
+             "Premium subscription activated successfully!",
+             yesText: "OK");
+         
     }
 
     public async Task OpenDialog()

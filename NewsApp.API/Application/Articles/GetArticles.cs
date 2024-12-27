@@ -18,6 +18,8 @@ namespace NewsApp.API.Application.Articles
     {
         private readonly UnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private const int DEFAULT_PAGE_SIZE = 10;
+        private const int MAX_PAGE_SIZE = 50;
 
         public GetArticlesQueryHandler(UnitOfWork unitOfWork, IMapper mapper)
         {
@@ -27,6 +29,20 @@ namespace NewsApp.API.Application.Articles
 
         public async Task<DataCollectionApiResponseDto<ArticleDto>> Handle(GetArticlesQuery request, CancellationToken cancellationToken)
         {
+            if (request.Parameters.PageSize <= 0)
+            {
+                request.Parameters.PageSize = DEFAULT_PAGE_SIZE;
+            }
+            else if (request.Parameters.PageSize > MAX_PAGE_SIZE)
+            {
+                request.Parameters.PageSize = MAX_PAGE_SIZE;
+            }
+
+            if (request.Parameters.PageNumber <= 0)
+            {
+                request.Parameters.PageNumber = 1;
+            }
+
             var query = _unitOfWork.GetRepository<Article>().GetAll();
 
             if (!string.IsNullOrEmpty(request.Parameters.CategoryName))
@@ -56,6 +72,12 @@ namespace NewsApp.API.Application.Articles
             };
 
             var totalCount = await query.CountAsync(cancellationToken);
+            var totalPages = (int)Math.Ceiling(totalCount / (double)request.Parameters.PageSize);
+
+            if (request.Parameters.PageNumber > totalPages)
+            {
+                request.Parameters.PageNumber = totalPages;
+            }
 
             var items = await query
                 .Skip((request.Parameters.PageNumber - 1) * request.Parameters.PageSize)
@@ -71,7 +93,7 @@ namespace NewsApp.API.Application.Articles
                 TotalCount = totalCount,
                 PageSize = request.Parameters.PageSize,
                 CurrentPage = request.Parameters.PageNumber,
-                TotalPages = (int)Math.Ceiling(totalCount / (double)request.Parameters.PageSize)
+                TotalPages = totalPages
             };
         }
     }

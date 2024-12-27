@@ -23,10 +23,8 @@ namespace NewsApp.API.Application.Authentication.Register
         [Compare(nameof(Password))]
         public string ConfirmPassword { get; set; }
 
-        // Default constructor for deserialization
         public RegisterCommand() { }
 
-        // Optional: Use the constructor for convenience
         public RegisterCommand(string name, string email, string password, string confirmPassword)
         {
             Name = name;

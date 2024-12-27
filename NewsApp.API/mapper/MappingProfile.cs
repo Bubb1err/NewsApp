@@ -41,10 +41,8 @@ public class UserRoleResolver : IValueResolver<User, UserDto, string>
 
     public string Resolve(User source, UserDto destination, string destMember, ResolutionContext context)
     {
-        // Получаем роли пользователя синхронно
         var roles = _userManager.GetRolesAsync(source).Result;
         
-        // Возвращаем первую роль или Default если ролей нет
         return roles.FirstOrDefault() ?? UserRoles.Default;
     }
 }

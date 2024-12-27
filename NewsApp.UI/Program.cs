@@ -21,7 +21,6 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 builder.Services.AddBlazoredLocalStorage();
 
-// Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -47,7 +46,6 @@ builder.Services.AddScoped<AricleService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<UserService>();
 
-// Настройка аутентификации и cookies
 builder.Services.AddAuthentication();
 
 builder.Services.AddAuthorization();

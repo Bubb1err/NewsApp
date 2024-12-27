@@ -21,7 +21,6 @@ namespace NewsApp.API.Services.Initializers
         {
             try
             {
-                // Создаем роли в правильном порядке
                 foreach (var roleName in UserRoles.All)
                 {
                     if (!await _roleManager.RoleExistsAsync(roleName))

@@ -107,9 +107,9 @@ public class AricleService
         {
             
             var token = await _tokenProvider.GetTokenAsync();
-         
-            
+            Console.WriteLine(token);
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            
             var response = await _httpClient.PostAsJsonAsync("Article", command);
             Console.WriteLine("TEST2");
             Console.WriteLine(response.StatusCode);

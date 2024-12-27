@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Components;
@@ -33,8 +34,13 @@ public class UserService
 
     public async Task<Guid> GetUserIdAsync()
     {
-        var response = await _httpClient.GetFromJsonAsync<DataApiResponseDto<UserDto>>("User/info");
+        var token = await _tokenService.GetTokenAsync();
         
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _httpClient.GetFromJsonAsync<DataApiResponseDto<UserDto>>("User/info");
+        
+
         return  new Guid( response?.Item.Id ?? throw new InvalidOperationException());
     }
 
@@ -165,7 +171,6 @@ public class UserService
 
             if (response.IsSuccessStatusCode)
             {
-                // Десериализуем ответ в объект
                 var checkoutResponse = await response.Content.ReadFromJsonAsync<LiqPayResponse>();
                 
                 if (!string.IsNullOrEmpty(checkoutResponse?.CheckoutUrl))

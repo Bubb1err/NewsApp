@@ -13,8 +13,8 @@ public class LiqPayService
     private readonly  AccessControlService _accessControl;
     private readonly string _privateKey;
     private readonly HttpClient _httpClient;
-    private readonly string ngrokUrl ; // Замените на ваш URL от ngrok
-    private readonly string ngrokUrl2 ; // Замените на ваш URL от ngrok
+    private readonly string ngrokUrl ; 
+    private readonly string ngrokUrl2 ; 
 
     private readonly ILogger<LiqPayService> _logger;
     private const string API_URL = "https://www.liqpay.ua/api/";
@@ -53,8 +53,8 @@ public class LiqPayService
                 { "subscribe", "1" },
                 { "subscribe_date_start", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") },
                 { "subscribe_periodicity", "month" },
-                { "result_url", $"{ngrokUrl2}/news" }, // URL для перенаправления после оплаты
-                { "server_url", $"{ngrokUrl}/api/Subscription/callback" } // URL для получения уведомлений
+                { "result_url", $"{ngrokUrl2}/news" }, 
+                { "server_url", $"{ngrokUrl}/api/Subscription/callback" } 
             };
 
             var jsonString = JsonSerializer.Serialize(subscriptionData);
@@ -81,7 +81,6 @@ public class LiqPayService
         return Convert.ToBase64String(signature);
     }
 
-    // Метод для проверки подписи callback'а
     public bool ValidateCallback(string data, string signature)
     {
         var expectedSignature = GenerateSignature(data);

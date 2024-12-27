@@ -33,13 +33,10 @@ public class AccessControlService
         var tokenHandler = new JwtSecurityTokenHandler();
         var secret = Encoding.UTF8.GetBytes(_configuration.GetValue<string>("JWT:SigningKey"));
 
-        // Проверяем и оставляем только одну роль
         var roleClaims = claims.Where(c => c.Type == ClaimTypes.Role).ToList();
         if (roleClaims.Any())
         {
-            // Удаляем все claims ролей
             claims.RemoveAll(c => c.Type == ClaimTypes.Role);
-            // Добавляем только одну роль (самую высокую по иерархии)
             var highestRole = GetHighestRole(roleClaims.Select(c => c.Value));
             claims.Add(new Claim(ClaimTypes.Role, highestRole));
         }
@@ -101,7 +98,6 @@ public class AccessControlService
 
         var userRoles = await _userManager.GetRolesAsync(user);
     
-        // Создаем базовые claims
         var claims = new List<Claim>
         {
             new(ClaimTypes.Email, user.Email),
@@ -110,7 +106,6 @@ public class AccessControlService
             new(JwtRegisteredClaimNames.Sub, user.Id),
         };
 
-        // Добавляем только одну роль
         if (userRoles.Any())
         {
             var highestRole = GetHighestRole(userRoles);
@@ -127,7 +122,6 @@ public class AccessControlService
         if (user == null) return null;
 
         
-        // Создаем базовые claims
         var claims = new List<Claim>
         {
             new(ClaimTypes.Email, user.Email),
@@ -153,5 +147,61 @@ public class AccessControlService
         return null;
     }
 
-   
+    public async Task<string> RefreshToken(string token)
+    {
+        try
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var secret = Encoding.UTF8.GetBytes(_configuration.GetValue<string>("JWT:SigningKey"));
+            
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = false, 
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = _configuration.GetValue<string>("JWT:Issuer"),
+                ValidAudience = _configuration.GetValue<string>("JWT:Audience"),
+                IssuerSigningKey = new SymmetricSecurityKey(secret)
+            };
+
+            var claimsPrincipal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
+            var claims = claimsPrincipal.Claims.ToList();
+
+            var userId = claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                throw new UnauthorizedException("Invalid token: user ID not found");
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                throw new UnauthorizedException("User not found");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+            
+            var newClaims = new List<Claim>
+            {
+                new(ClaimTypes.Email, user.Email),
+                new(ClaimTypes.Name, user.Name ?? ""),
+                new(ClaimTypes.NameIdentifier, user.Id),
+                new(JwtRegisteredClaimNames.Sub, user.Id)
+            };
+
+            if (userRoles.Any())
+            {
+                var highestRole = GetHighestRole(userRoles);
+                newClaims.Add(new Claim(ClaimTypes.Role, UserRoles.Premium));
+            }
+
+         
+            return GenerateJWTToken(newClaims);
+        }
+        catch (SecurityTokenException)
+        {
+            throw new UnauthorizedException("Invalid token");
+        }
+    }
 }

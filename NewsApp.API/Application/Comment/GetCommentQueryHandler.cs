@@ -25,13 +25,10 @@ namespace NewsApp.API.Application.Comments
 
             if (comment == null)
             {
-                return new DataApiResponseDto<CommentDto> { Item = null }; // Handle the case where the comment is not found
+                return new DataApiResponseDto<CommentDto> { Item = null };
             }
 
-            // Map the Comment entity to CommentDto
             var commentDto = _mapper.Map<CommentDto>(comment);
-
-            // Return the response with the comment data
             return new DataApiResponseDto<CommentDto>
             {
                 Item = commentDto

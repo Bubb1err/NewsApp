@@ -28,6 +28,22 @@
         window.location.href = url;
     }
 </script>
+
+
+<script>
+    window.initScrollHandler = function () {
+        window.addEventListener('scroll', function() {
+            const paginationContainer = document.querySelector('.pagination-container');
+            if (!paginationContainer) return;
+if ((window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 100) {
+                paginationContainer.classList.add('visible');
+            } else {
+                paginationContainer.classList.remove('visible');
+            }
+        });
+    }
+</script>
+
 </body>
 
 </html>

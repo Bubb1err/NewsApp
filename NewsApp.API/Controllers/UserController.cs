@@ -121,7 +121,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("access-level")]
-    [Authorize(Policy = "Default")]  // Используем политику вместо прямого указания роли
+    [Authorize(Policy = "Default")]  
     public async Task<IActionResult> GetUserAccessLevel()
     {
         var userResult = await GetCurrentUserOrBadRequest();
@@ -158,19 +158,17 @@ public class UserController : ControllerBase
     
 
     [HttpPut("role")]
-    [Authorize(Policy = "Admin")] // Только админы могут менять роли
+    [Authorize(Policy = "Admin")] 
     public async Task<IActionResult> UpdateUserRole([FromBody] UpdateUserRoleCommand command)
     {
         try 
         {
-            // Проверяем существование пользователя
             var user = await _accessControlService.GetUserById(command.UserId);
             if (user == null)
             {
                 return NotFound("User not found");
             }
 
-            // Проверяем валидность роли
             if (!UserRoles.All.Contains(command.NewRole))
             {
                 return BadRequest("Invalid role specified");

@@ -36,7 +36,6 @@ public class UpdateUserStateCommandHandler : IRequestHandler<UpdateUserStateComm
         
         _unitOfWork.GetRepository<Data.Entities.User>().Update(user);
 
-        Console.WriteLine("User state updated&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
         Console.WriteLine(request.State.ToString());
         Console.WriteLine(user.State.ToString());
         await _unitOfWork.SaveAsync();

@@ -51,19 +51,7 @@ public class CombinedAuthenticationHandler : AuthenticationHandler<Authenticatio
             
           
             Request.Headers.TryGetValue("UserId", out var userId);
-            if (!string.IsNullOrEmpty(providedApiKey))
-            {
-                
-                /*if (!string.IsNullOrWhiteSpace(clientId))
-                {
-                    var claims = new[] { new Claim(ClaimTypes.Name, clientId), new Claim(ClaimTypes.NameIdentifier, userId.FirstOrDefault() ?? string.Empty) };
-                    var identity = new ClaimsIdentity(claims, Scheme.Name);
-                    var principal = new ClaimsPrincipal(identity);
-                    var ticket = new AuthenticationTicket(principal, Scheme.Name);
-
-                    return AuthenticateResult.Success(ticket);
-                }*/
-            }
+            
         }
         if (Request.Headers.TryGetValue("Authorization", out tokenHeaderValues))
         {

@@ -55,7 +55,7 @@
             {
                 <div class="form-group">
                     <label>First Name</label>
-                    <input type="text" class="form-control" @bind="_userDto.Name" />
+                    <input type="text" class="form-control" @bind="_userDto.Name"  readonly/>
                 </div>
 
                 <div class="form-group">
@@ -81,12 +81,6 @@
                         </button>
                     }
                 </div>
-
-                <div class="button-container">
-                    <button class="save-button" @onclick="SaveChanges">
-                        Save Changes
-                    </button>
-                </div>
             }
             else if (currentTab == "actions")
             {
@@ -110,19 +104,7 @@
             }
             else if (currentTab == "security")
             {
-                <div class="form-group">
-                    <label class="toggle-label">
-                        <input type="checkbox" checked />
-                        <span class="toggle-text">Two Factor Authentication</span>
-                    </label>
-                </div>
-
-                <div class="form-group">
-                    <label class="toggle-label">
-                        <input type="checkbox" checked />
-                        <span class="toggle-text">Google Login</span>
-                    </label>
-                </div>
+                
                 
                 <div class="logout-container">
                     <button class="logout-button" @onclick="Logout">
@@ -194,10 +176,6 @@
                                                 <button class="btn-state @(user.State == UserState.Rejected ? "active" : "")"
                                                         @onclick="() => UpdateUserState(user.Id, UserState.Rejected)">
                                                     Reject
-                                                </button>
-                                                <button class="btn-state @(user.State == UserState.Blocked ? "active" : "")"
-                                                        @onclick="() => UpdateUserState(user.Id, UserState.Blocked)">
-                                                    Block
                                                 </button>
                                             </div>
                                         </div>
@@ -295,12 +273,6 @@
         }
     }
 
-    private async Task SaveChanges()
-    {
-        // Добавить логику сохранения изменений
-        StateHasChanged();
-    }
-
     private async Task getLiked()
     {
         Navigation.NavigateTo("/liked-articles");
@@ -380,7 +352,7 @@
         }
         catch (Exception ex)
         {
-            // Обработка ошибок
+            Console.WriteLine(ex);
         }
     }
 

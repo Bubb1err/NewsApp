@@ -63,16 +63,13 @@ public class UserInitializerService
         
         if (existingUser != null)
         {
-            // Проверяем и исправляем роли существующего пользователя
             var existingRoles = await _userManager.GetRolesAsync(existingUser);
             
-            // Удаляем все текущие роли
             if (existingRoles.Any())
             {
                 await _userManager.RemoveFromRolesAsync(existingUser, existingRoles);
             }
             
-            // Добавляем правильную роль
             await _userManager.AddToRoleAsync(existingUser, role);
             _logger.LogInformation($"Updated role for user {user.Email} to {role}");
             return;
