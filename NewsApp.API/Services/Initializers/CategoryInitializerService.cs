@@ -13,7 +13,7 @@ public class CategoryInitializerService
     
     private readonly Dictionary<string, string[]> _defaultCategories = new()
     {
-        { "World News", new[] { "BBC", "CNN" } },
+        { "World News", new[] { "BBC", "CNN","cbsnews","yahoo","feedburner","CNBC" } },
         { "Politics", new[] { "FoxNews", "CNN" } },
         { "Technology", new[] { "BBC" } },
         { "Business", new[] { "CNN", "FoxNews" } },
