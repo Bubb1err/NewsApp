@@ -135,45 +135,64 @@
         <div class="custom-dialog-content">
             <span class="close-btn" @onclick="CloseEditDialog"><i class="bi bi-x-lg"></i></span>
             <h3>Edit Article</h3>
-            
-            <div class="edit-form">
-                <div class="form-group">
-                    <label>Title</label>
-                    <input type="text" class="form-control" @bind="editArticle.Title" />
-                </div>
 
-                <div class="form-group">
-                    <label>Content</label>
-                    <textarea class="form-control content-area" @bind="editArticle.Content"></textarea>
-                </div>
 
-                <div class="form-group">
-                    <label>Category</label>
-                    <select class="form-control" @bind="editArticle.CategoryId">
-                        @if (categories?.Items != null)
-                        {
+            <EditForm Model="@editArticle" OnValidSubmit="SaveArticleChanges" class="edit-form">
+                <DataAnnotationsValidator />
+
+                <div class="form-container">
+                    <div class="form-group">
+                        <label for="title">Title</label>
+                        <InputText id="title"
+                                   class="form-control    "
+                                   @bind-Value="editArticle.Title"
+                                   placeholder="Enter article title"/>
+                        <ValidationMessage For="@(() => editArticle.Title)" class="text-danger"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <InputSelect id="category"
+                                     class="form-control"
+                                     @bind-Value="editArticle.CategoryId">
+                            <option value="">Select a category...</option>
                             @foreach (var category in categories.Items)
                             {
-                                <option value="@category.Id">@category.Name</option>
+                            <option value="@category.Id">@category.Name</option>
                             }
-                        }
-                    </select>
-                </div>
+                        </InputSelect>
+                        <ValidationMessage For="@(() => editArticle.CategoryId)" class="text-danger" />
+                    </div>
 
-                <div class="form-group">
-                    <label class="premium-checkbox">
-                        <input type="checkbox" @bind="editArticle.IsPremium" />
-                        <span>Premium Content</span>
-                    </label>
-                </div>
+                    <div class="form-group">
+                        <label for="content">Content</label>
+                        <InputTextArea id="content"
+                                       class="form-control content-area"
+                                       @bind-Value="editArticle.Content"
+                                       placeholder="Write your article content here"/>
+                        <ValidationMessage For="@(() => editArticle.Content)"class="text-danger" />
+                    </div>
 
-                <div class="button-group">
-                    <button class="btn-save" @onclick="SaveArticleChanges">
-                        <i class="bi bi-check-lg"></i>
-                        Save Changes
-                    </button>
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <InputCheckbox @bind-Value="editArticle.IsPremium" />
+                            <span class="checkbox-label">Premium Article</span>
+                        </label>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn-save">
+                            <i class="bi bi-check"></i>
+                            Save
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </EditForm>
+            
+            
+            
+            
+            
         </div>
     </div>
 }
@@ -511,6 +530,12 @@
         filter: blur(4px);
         pointer-events: none;
         user-select: none;
+    }
+    .text-danger {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
     }
 
     .premium-overlay {

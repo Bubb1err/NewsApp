@@ -26,10 +26,10 @@
             <div class="form-group">
                 <label for="title">Title</label>
                 <InputText id="title" 
-                          class="form-control" 
+                          class="form-control    " 
                           @bind-Value="article.Title" 
                           placeholder="Enter article title"/>
-                <ValidationMessage For="@(() => article.Title)" />
+                <ValidationMessage For="@(() => article.Title)"class="text-danger"/>
             </div>
 
             <div class="form-group">
@@ -43,7 +43,7 @@
                         <option value="@category.Id">@category.Name</option>
                     }
                 </InputSelect>
-                <ValidationMessage For="@(() => article.CategoryId)" />
+                <ValidationMessage For="@(() => article.CategoryId)" class="text-danger" />
             </div>
 
             <div class="form-group">
@@ -52,7 +52,7 @@
                               class="form-control content-area" 
                               @bind-Value="article.Content" 
                               placeholder="Write your article content here"/>
-                <ValidationMessage For="@(() => article.Content)" />
+                <ValidationMessage For="@(() => article.Content)"class="text-danger" />
             </div>
 
             <div class="form-group checkbox-group">
@@ -122,6 +122,14 @@
         font-weight: 500;
         color: #333;
     }
+
+    .text-danger {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
 
     .form-control {
         width: 100%;
@@ -223,7 +231,7 @@
     {
         try
         {
-            if (article.CategoryId == Guid.Empty)
+            if (article.CategoryId == Guid.Empty||article.Content == null||article.Title == null)
             {
                 return;
             }
