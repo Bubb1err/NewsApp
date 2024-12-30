@@ -18,6 +18,8 @@ internal sealed class DeleteCategoryQueryHandler : IRequestHandler<DeleteCategor
 {
     private readonly UnitOfWork _unitOfWork;
 
+    private static readonly Guid DefaultCategoryId = new("00000000-0000-0000-0000-000000000000");
+
 
     public DeleteCategoryQueryHandler(UnitOfWork unitOfWork)
     {
@@ -29,10 +31,23 @@ internal sealed class DeleteCategoryQueryHandler : IRequestHandler<DeleteCategor
     {
         var category = await _unitOfWork.GetRepository<Data.Entities.Category>()
             .GetFirstOrDefaultAsync(c => c.Id == request.Id);
-        _unitOfWork
-            .GetRepository<Data.Entities.Category>().Delete(category);
+        
+        var WorldNewsCategory = await _unitOfWork.GetRepository<Data.Entities.Category>().GetFirstOrDefaultAsync(c => c.Name == "World News");
+        
+        
+        var articles =  _unitOfWork.GetRepository<Article>()
+            .GetAll(a => a.CategoryId == category.Id);
 
+        foreach (var article in articles)
+        {
+            article.CategoryId = WorldNewsCategory.Id;
+             _unitOfWork.GetRepository<Article>().Update(article);
 
+        }
+
+        await _unitOfWork.SaveAsync();
+
+        _unitOfWork.GetRepository<Data.Entities.Category>().Delete(category);
         await _unitOfWork.SaveAsync();
 
         return new DataApiResponseDto<bool>

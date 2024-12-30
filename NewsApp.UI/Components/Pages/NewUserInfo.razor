@@ -131,7 +131,7 @@
                         <div class="categories-list">
                             @if (categories != null)
                             {
-                                @foreach (var category in categories.Items)
+                                @foreach (var category in categories.Items.Where(c => c.Name.ToLower() != "world news"))
                                 {
                                     <div class="category-item">
                                         <span>@category.Name</span>

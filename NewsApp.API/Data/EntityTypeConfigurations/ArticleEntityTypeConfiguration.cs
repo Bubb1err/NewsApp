@@ -8,6 +8,7 @@ namespace NewsApp.API.Data.EntityTypeConfigurations
     {
         public void Configure(EntityTypeBuilder<Article> builder)
         {
+
             builder.HasKey(x => x.Id);
 
             builder.Property(x => x.Title).IsRequired();
@@ -29,13 +30,12 @@ namespace NewsApp.API.Data.EntityTypeConfigurations
                 .WithOne(c => c.Article)
                 .HasForeignKey(c => c.ArticleId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
-            
+
+
             builder.HasOne(c => c.Category)
-                .WithMany(a => a.Articles) 
-                .HasForeignKey(c => c.CategoryId)
-                .OnDelete(DeleteBehavior.Cascade);
-            
+                .WithMany(a => a.Articles)
+                .HasForeignKey(c => c.CategoryId);
+
         }
     }
 }
