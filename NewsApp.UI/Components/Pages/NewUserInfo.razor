@@ -68,19 +68,22 @@
                     <input type="email" class="form-control" value="@_userDto.Email" readonly />
                 </div>
 
-                <div class="form-group">
-                    <label>Verification Status</label>
-                    <div class="verification-status @_userDto.State.ToString().ToLower()">
-                        @_userDto.State
+                if (role != "Admin")
+                {
+                    <div class="form-group">
+                        <label>Verification Status</label>
+                        <div class="verification-status @_userDto.State.ToString().ToLower()">
+                            @_userDto.State
+                        </div>
+                        @if (_userDto.State == UserState.Unknown || _userDto.State == UserState.Rejected)
+                        {
+                            <button class="verify-button" @onclick="RequestVerification">
+                                <i class="bi bi-patch-check"></i>
+                                Request Verification
+                            </button>
+                        }
                     </div>
-                    @if (_userDto.State == UserState.Unknown ||_userDto.State == UserState.Rejected)
-                    {
-                        <button class="verify-button" @onclick="RequestVerification">
-                            <i class="bi bi-patch-check"></i>
-                            Request Verification
-                        </button>
-                    }
-                </div>
+                }
             }
             else if (currentTab == "actions")
             {
@@ -148,6 +151,11 @@
                             {
                                 @foreach (var user in users.Items)
                                 {
+                                    if (user.Id == _userDto.Id)
+                                    {
+                                        continue;
+                                    }
+
                                     <div class="user-item">
                                         <div class="user-info">
                                             <span>@user.Email</span>
@@ -323,6 +331,7 @@
 
     private async Task DeleteCategory(Guid categoryId)
     {
+        Console.WriteLine("TEEEEEEEEEEEEEEEEST");
         await CategoryService.DeleteCategory(categoryId);
         await LoadAdminData();
     }
