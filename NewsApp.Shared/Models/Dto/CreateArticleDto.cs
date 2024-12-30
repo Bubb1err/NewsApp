@@ -17,7 +17,7 @@ public class CreateArticleDto
 
     
     [Required(ErrorMessage = "Content is required")]
-    [MinLength(3, ErrorMessage = "Title must be at least 3 characters long")]
+    [MinLength(3, ErrorMessage = "Content must be at least 3 characters long")]
     public string Content { get; set; }
     public bool IsPremium { get; set; }
 }
