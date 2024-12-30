@@ -19,7 +19,7 @@
     @if (article == null)
     {
         <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
-        <MudText Typo="Typo.body1" Class="mt-3">Loading article...</MudText>
+        <MudText Typo="Typo.body1" Class="mt-3">Loading news...</MudText>
     }
     else
     {
@@ -40,35 +40,42 @@
             
             <div class="article-content @(IsPremiumBlocked ? "blur-content" : "")">
                 <div class="article-block">
-                    <div class="article-source">
-                        @if (!string.IsNullOrWhiteSpace(article.Author))
+                    <div style="display: flex; justify-content: space-between;">
+                        <div class="article-source">
+                            @if (!string.IsNullOrWhiteSpace(article.Author))
+                            {
+                                <span>@article.Author</span>
+                            }
+                            else if (!string.IsNullOrWhiteSpace(article.SourceUrl))
+                            {
+                                <a href="@article.SourceUrl">BBC News</a>
+                            }
+                        </div>
+
+                        @if (canEdit)
                         {
-                            <span>@article.Author</span>
-                        }
-                        else if (!string.IsNullOrWhiteSpace(article.SourceUrl))
-                        {
-                            <a href="@article.SourceUrl">BBC News</a>
+                            <div style="display: flex;">
+                                <div class="edit-button">
+                                    <button class="" @onclick="NavigateToEdit">
+                                        <i class="bi bi-pencil" style="color: #000;font-size: 1em;"></i>
+                                    </button>
+                                </div>
+
+                                <div class="edit-button">
+                                    <button class="" @onclick="DeleteArticleAsync">
+                                        <i class="bi bi-trash" style="color: #000;font-size: 1em;"></i>
+                                    </button>
+                                </div>
+                            </div>
                         }
                     </div>
+
 
                     <div class="article-header">
                         <div class="article-title">
                             <h1>@article.Title</h1>
                         </div>
-                        @if (canEdit)
-                        {
-                            <div class="edit-button">
-                                <button class="btn btn-primary" @onclick="NavigateToEdit">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                            </div>
-                            
-                            <div class="edit-button">
-                            <button class="btn btn-danger" @onclick="DeleteArticleAsync">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                            </div>
-                        }
+
                     </div>
 
                     <p class="article-content">@article.Content</p>
@@ -496,6 +503,10 @@
         border-radius: 20px;
     }
 
+        .comment-input:focus {
+            border: none;
+        }
+
     .blur-content {
         filter: blur(4px);
         pointer-events: none;
@@ -573,6 +584,7 @@
         align-items: center;
         margin-bottom: 20px;
         width: 100%;
+        word-break: break-word;
     }
 
     .article-title {

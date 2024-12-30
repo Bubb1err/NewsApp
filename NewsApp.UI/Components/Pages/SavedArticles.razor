@@ -10,7 +10,7 @@
 {
     <div class="liked-articles-container">
         <div class="header">
-            <h2>Saved articles</h2>
+            <h2>Saved news</h2>
             <button class="back-button" @onclick="GoBack">
                 <i class="oi oi-arrow-left"></i>
                 Back
@@ -51,7 +51,10 @@
 }
 else
 {
-    <p>Перенаправление на страницу регистрации...</p>
+    <div class="loading">
+        <div class="spinner"></div>
+        <p>Loading news...</p>
+    </div>
 }
 
 @code {
@@ -183,12 +186,14 @@ else
 
     .article-content {
         padding: 1.5rem;
+        word-wrap: break-word;
     }
 
     .article-content h3 {
         margin: 0 0 1rem 0;
         font-size: 1.2rem;
         color: #333;
+        word-wrap: break-word;
     }
 
     .article-content p {
@@ -196,6 +201,7 @@ else
         color: #666;
         font-size: 0.9rem;
         line-height: 1.5;
+        word-wrap: break-word;
     }
 
     .article-meta {
